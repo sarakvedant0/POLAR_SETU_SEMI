@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { ResearchReport, Expedition, PolarFact, ClaimVerification, ViewMode } from '../types';
 import { RESEARCH_REPORTS, EXPEDITIONS, POLAR_FACTS, CLAIMS } from '../data/mockData';
+import { Holographic3DCube } from './3d/Holographic3DCube';
 
 interface HomeSectionsProps {
   reports?: ResearchReport[];
@@ -78,24 +79,31 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
 
         {/* 6 Broad Spaced Portal Cards (Zero Overlap, Extra Space) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {/* Card 1: Datasets */}
+          {/* Card 1: Scientific Datasets */}
           <div
             id="portal-card-datasets"
             onClick={() => onNavigate('datasets')}
             className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-cyan-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
-                <Database className="w-5 h-5" />
+              <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
+                <Holographic3DCube
+                  icon={Database}
+                  size={32}
+                  color="#38bdf8"
+                  enableDrag={false}
+                  autoRotateSpeed={10}
+                />
               </div>
               <ArrowRight className="w-4 h-4 text-cyan-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </div>
             <div className="mt-4">
-              <div className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-                Open Data
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.2 rounded bg-cyan-950/80 border border-cyan-500/40 text-[9px] font-mono font-bold text-cyan-300">WEBPAGE</span>
+                <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Open Data</span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-cyan-200 mt-0.5 font-['Outfit']">
-                Scientific Datasets
+              <h3 className="text-sm font-bold text-white group-hover:text-cyan-200 mt-1 font-['Outfit']">
+                Datasets
               </h3>
               <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                 40+ years of ice cores, ocean salinity, and atmospheric weather records.
@@ -114,17 +122,24 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
             className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-sky-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-sky-950/80 border border-sky-500/40 flex items-center justify-center text-sky-300 group-hover:scale-105 transition-transform">
-                <ImageIcon className="w-5 h-5" />
+              <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
+                <Holographic3DCube
+                  icon={ImageIcon}
+                  size={32}
+                  color="#38bdf8"
+                  enableDrag={false}
+                  autoRotateSpeed={9}
+                />
               </div>
               <ArrowRight className="w-4 h-4 text-sky-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </div>
             <div className="mt-4">
-              <div className="text-[11px] font-bold text-sky-400 uppercase tracking-wider">
-                Gallery & Visuals
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.2 rounded bg-sky-950/80 border border-sky-500/40 text-[9px] font-mono font-bold text-sky-300">WEBPAGE</span>
+                <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider">Visuals</span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-sky-200 mt-0.5 font-['Outfit']">
-                Media & Visuals
+              <h3 className="text-sm font-bold text-white group-hover:text-sky-200 mt-1 font-['Outfit']">
+                Media Archive
               </h3>
               <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                 Documentary footage, satellite composites, and polar expedition photos.
@@ -143,17 +158,24 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
             className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-emerald-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform">
-                <BookOpen className="w-5 h-5" />
+              <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
+                <Holographic3DCube
+                  icon={BookOpen}
+                  size={32}
+                  color="#34d399"
+                  enableDrag={false}
+                  autoRotateSpeed={11}
+                />
               </div>
               <ArrowRight className="w-4 h-4 text-emerald-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </div>
             <div className="mt-4">
-              <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
-                Peer-Reviewed
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-500/40 text-[9px] font-mono font-bold text-emerald-300">WEBPAGE</span>
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Literature</span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-emerald-200 mt-0.5 font-['Outfit']">
-                Research Papers
+              <h3 className="text-sm font-bold text-white group-hover:text-emerald-200 mt-1 font-['Outfit']">
+                Research
               </h3>
               <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                 Studies on accelerated glacier melting, krill ecosystems, and ozone.
@@ -172,17 +194,24 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
             className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-amber-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 group-hover:scale-105 transition-transform">
-                <Ship className="w-5 h-5" />
+              <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
+                <Holographic3DCube
+                  icon={Ship}
+                  size={32}
+                  color="#fbbf24"
+                  enableDrag={false}
+                  autoRotateSpeed={12}
+                />
               </div>
               <ArrowRight className="w-4 h-4 text-amber-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </div>
             <div className="mt-4">
-              <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
-                Logistics & Fleet
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-500/40 text-[9px] font-mono font-bold text-amber-300">WEBPAGE</span>
+                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Missions</span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-amber-200 mt-0.5 font-['Outfit']">
-                Polar Expeditions
+              <h3 className="text-sm font-bold text-white group-hover:text-amber-200 mt-1 font-['Outfit']">
+                Expeditions
               </h3>
               <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                 44 Indian expeditions, Dakshin Gangotri, Maitri, Bharati, and Himadri.
@@ -194,61 +223,83 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
             </div>
           </div>
 
-          {/* Card 5: Polar AI */}
+          {/* Card 5: Polar AI - HIGHLIGHTED */}
           <div
             id="portal-card-ai"
             onClick={() => onNavigate('ai')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-cyan-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#092244]/90 hover:bg-[#0c2f5d] border-2 border-cyan-400/80 hover:border-cyan-300 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-cyan-950/60 hover:shadow-cyan-500/25 cursor-pointer relative overflow-hidden"
           >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-400/50 flex items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
+                <Holographic3DCube
+                  icon={Sparkles}
+                  size={34}
+                  color="#22d3ee"
+                  enableDrag={false}
+                  autoRotateSpeed={8}
+                />
               </div>
-              <ArrowRight className="w-4 h-4 text-cyan-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              <span className="px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 text-[10px] font-black font-mono tracking-tight shadow-md flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5" />
+                <span>POLAR AI</span>
+              </span>
             </div>
             <div className="mt-4">
-              <div className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-                AI Science Layer
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-200 text-[9px] font-mono font-bold">WEBPAGE</span>
+                <span className="text-[11px] font-black text-cyan-300 uppercase tracking-wider">AI Assistant</span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-cyan-200 mt-0.5 font-['Outfit']">
-                Ask Polar AI
+              <h3 className="text-base font-extrabold text-cyan-100 group-hover:text-white mt-1 font-['Outfit']">
+                Polar AI
               </h3>
-              <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+              <p className="text-xs text-slate-300 mt-1 line-clamp-2">
                 Interactive queries grounded in peer-reviewed polar scientific literature.
               </p>
             </div>
-            <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-cyan-300 font-medium">
-              <span>Interactive</span>
-              <span className="text-[10px] text-slate-500">Chat →</span>
+            <div className="mt-3 pt-3 border-t border-cyan-800/80 flex items-center justify-between text-[11px] text-cyan-300 font-bold">
+              <span>Interactive Chat</span>
+              <span className="text-[10px] text-cyan-400 font-mono">Launch →</span>
             </div>
           </div>
 
-          {/* Card 6: Polar Facts & Claims */}
+          {/* Card 6: Evidence & Fact-Checks - HIGHLIGHTED */}
           <div
             id="portal-card-claims"
             onClick={() => onNavigate('claims')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-purple-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#07241f]/90 hover:bg-[#0a332c] border-2 border-emerald-400/80 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-emerald-950/60 hover:shadow-emerald-500/25 cursor-pointer relative overflow-hidden"
           >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/10 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center text-purple-300 group-hover:scale-105 transition-transform">
-                <CheckCircle2 className="w-5 h-5" />
+              <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
+                <Holographic3DCube
+                  icon={CheckCircle2}
+                  size={34}
+                  color="#34d399"
+                  enableDrag={false}
+                  autoRotateSpeed={10}
+                />
               </div>
-              <ArrowRight className="w-4 h-4 text-purple-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              <span className="px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[10px] font-black font-mono tracking-tight shadow-md flex items-center gap-1">
+                <CheckCircle2 className="w-2.5 h-2.5" />
+                <span>EVIDENCE</span>
+              </span>
             </div>
             <div className="mt-4">
-              <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider">
-                Verification
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.2 rounded bg-emerald-400/20 text-emerald-200 text-[9px] font-mono font-bold">WEBPAGE</span>
+                <span className="text-[11px] font-black text-emerald-300 uppercase tracking-wider">Fact-Checks</span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-purple-200 mt-0.5 font-['Outfit']">
-                Facts & Myths
+              <h3 className="text-base font-extrabold text-emerald-100 group-hover:text-white mt-1 font-['Outfit']">
+                Evidence & Claims
               </h3>
-              <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+              <p className="text-xs text-slate-300 mt-1 line-clamp-2">
                 Evidence-based audits debunking common misconceptions about polar ice.
               </p>
             </div>
-            <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-purple-300 font-medium">
+            <div className="mt-3 pt-3 border-t border-emerald-800/80 flex items-center justify-between text-[11px] text-emerald-300 font-bold">
               <span>Verified Audits</span>
-              <span className="text-[10px] text-slate-500">Explore →</span>
+              <span className="text-[10px] text-emerald-400 font-mono">Explore →</span>
             </div>
           </div>
         </div>

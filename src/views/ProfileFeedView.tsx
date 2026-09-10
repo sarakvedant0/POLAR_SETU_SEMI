@@ -83,89 +83,136 @@ export const ProfileFeedView: React.FC<ProfileFeedViewProps> = ({
       <TopLeftBackButton onBack={() => onNavigate('home')} currentView="profile" targetLabel="Home" />
 
       {/* User Header Profile Card */}
-      <div className="p-8 rounded-3xl bg-gradient-to-r from-[#08182f] via-[#091f3d] to-[#061426] border border-cyan-700/60 shadow-2xl flex flex-col md:flex-row items-center md:items-start gap-6">
-        <div className="relative">
-          <img
-            src={currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}
-            alt="Researcher Avatar"
-            referrerPolicy="no-referrer"
-            className="w-24 h-24 rounded-full object-cover border-2 border-cyan-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]"
-          />
-          <div className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-cyan-500 text-slate-950 font-bold">
-            <ShieldCheck className="w-4 h-4" />
+      {!currentUser ? (
+        <div className="p-8 rounded-3xl bg-gradient-to-r from-[#08182f] via-[#091f3d] to-[#061426] border border-cyan-700/60 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+            <div className="w-20 h-20 rounded-full bg-slate-800/90 border-2 border-cyan-400/60 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(56,189,248,0.2)]">
+              <User className="w-10 h-10" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <h1 className="text-2xl font-extrabold text-white font-['Outfit']">Polar Explorer</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-cyan-300 border border-cyan-700/50">
+                  Guest Mode
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                You are currently exploring in guest mode. To personalize your research feed, follow scientists, save publications, and earn verified polar badges, please sign up or log in.
+              </p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2 text-xs text-slate-400">
+                <span>0 Research XP</span>
+                <span>•</span>
+                <span>{savedItems.length} Temporary Bookmarks</span>
+                <span>•</span>
+                <span>Public Feed Preview</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto">
+            <button
+              onClick={() => setIsAuthOpen(true)}
+              className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Sign Up / Log In</span>
+            </button>
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition-all cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-sky-400" />
+              <span>Filter Topics</span>
+            </button>
           </div>
         </div>
-
-        <div className="flex-1 text-center md:text-left space-y-2">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-            <h1 className="text-2xl font-extrabold text-white font-['Outfit']">
-              {currentUser?.displayName || 'Polar Explorer'}
-            </h1>
-            <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-600">
-              <KeyRound className="w-3 h-3 text-cyan-400" />
-              <span>@{currentUser?.username || 'POLAR-EXPLORER-2026'}</span>
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">
-              {currentUser?.role || 'Researcher'}
-            </span>
+      ) : (
+        <div className="p-8 rounded-3xl bg-gradient-to-r from-[#08182f] via-[#091f3d] to-[#061426] border border-cyan-700/60 shadow-2xl flex flex-col md:flex-row items-center md:items-start gap-6">
+          <div className="relative">
+            <img
+              src={currentUser.avatarUrl || currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}
+              alt="Researcher Avatar"
+              referrerPolicy="no-referrer"
+              className="w-24 h-24 rounded-full object-cover border-2 border-cyan-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]"
+            />
+            <div className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-cyan-500 text-slate-950 font-bold">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            {currentUser?.bio ||
-              'Cryosphere Research Fellow • Investigating Antarctic ice shelf grounding line dynamics, satellite radar altimetry, and Indian polar station telemetry.'}
-          </p>
-
-          {currentUser?.purpose && (
-            <div className="text-xs text-cyan-300 flex items-center justify-center md:justify-start gap-1.5 pt-1">
-              <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Primary Mission: {currentUser.purpose}</span>
-            </div>
-          )}
-
-          {/* User Interests Chips */}
-          <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-1.5">
-            <span className="text-xs text-slate-400 mr-1">Active Interests:</span>
-            {userInterests.map((interest) => (
-              <span
-                key={interest}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-cyan-950/80 border border-cyan-800 text-cyan-200"
-              >
-                {interest}
+          <div className="flex-1 text-center md:text-left space-y-2">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+              <h1 className="text-2xl font-extrabold text-white font-['Outfit']">
+                {currentUser.displayName || currentUser.name}
+              </h1>
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-600">
+                <KeyRound className="w-3 h-3 text-cyan-400" />
+                <span>{currentUser.username}</span>
               </span>
-            ))}
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">
+                {currentUser.role}
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              {currentUser.bio ||
+                'Cryosphere Research Fellow • Investigating Antarctic ice shelf grounding line dynamics, satellite radar altimetry, and Indian polar station telemetry.'}
+            </p>
+
+            {currentUser.purpose && (
+              <div className="text-xs text-cyan-300 flex items-center justify-center md:justify-start gap-1.5 pt-1">
+                <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Primary Mission: {currentUser.purpose}</span>
+              </div>
+            )}
+
+            {/* User Interests Chips */}
+            <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-1.5">
+              <span className="text-xs text-slate-400 mr-1">Active Interests:</span>
+              {userInterests.map((interest) => (
+                <span
+                  key={interest}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-cyan-950/80 border border-cyan-800 text-cyan-200"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-3 text-xs text-slate-400">
+              <div>
+                <span className="font-bold text-white text-sm">{currentUser.xp || 240}</span> Research XP
+              </div>
+              <div>
+                <span className="font-bold text-white text-sm">{savedItems.length}</span> Saved Items
+              </div>
+              <div>
+                <span className="font-bold text-white text-sm">{earnedBadges.length}</span> Badges Earned
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-3 text-xs text-slate-400">
-            <div>
-              <span className="font-bold text-white text-sm">{currentUser?.xp || 240}</span> Research XP
-            </div>
-            <div>
-              <span className="font-bold text-white text-sm">{savedItems.length}</span> Saved Items
-            </div>
-            <div>
-              <span className="font-bold text-white text-sm">{earnedBadges.length}</span> Badges Earned
-            </div>
+          {/* Action Controls */}
+          <div className="flex flex-col gap-2 w-full md:w-auto">
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Personalize Interests</span>
+            </button>
+            <button
+              onClick={() => {
+                authService.logout();
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-rose-950/40 text-slate-300 hover:text-rose-200 border border-slate-700 hover:border-rose-700/60 text-xs font-semibold transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5 text-rose-400" />
+              <span>Log Out (Guest Mode)</span>
+            </button>
           </div>
         </div>
-
-        {/* Action Controls */}
-        <div className="flex flex-col gap-2 w-full md:w-auto">
-          <button
-            onClick={() => setIsOnboardingOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Personalize Interests</span>
-          </button>
-          <button
-            onClick={() => setIsAuthOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition-all cursor-pointer"
-          >
-            <User className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Switch Account / Sign In</span>
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-800 pb-3 text-xs overflow-x-auto">

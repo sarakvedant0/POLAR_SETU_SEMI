@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Polar3DScene } from '../components/3d/Polar3DScene';
+import { Holographic3DCube } from '../components/3d/Holographic3DCube';
 import { SCIENTIFIC_NODES, RESEARCH_REPORTS, EXPEDITIONS, DATASETS } from '../data/mockData';
 import { ScientificNode, ViewMode } from '../types';
 
@@ -133,17 +134,32 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onNavigate }) => {
         {/* Right: Selected Node Details & Connected Knowledge Panel (Col 4) */}
         <div className="lg:col-span-4 bg-[#07152b] border-t lg:border-t-0 lg:border-l border-cyan-950/80 p-6 flex flex-col justify-between overflow-y-auto">
           <div className="space-y-6">
-            {/* Active Node Header */}
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/50 uppercase tracking-wider mb-2">
-                <span>{selectedNode.category} Node</span>
+            {/* Active Node Header with Live 360 Rotating Holographic Block */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/50 uppercase tracking-wider mb-2">
+                  <span>{selectedNode.category} Node</span>
+                </div>
+                <h2 className="text-2xl font-extrabold text-white font-['Outfit']">
+                  {selectedNode.label}
+                </h2>
+                <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+                  {selectedNode.description}
+                </p>
               </div>
-              <h2 className="text-2xl font-extrabold text-white font-['Outfit']">
-                {selectedNode.label}
-              </h2>
-              <p className="text-sm text-slate-300 mt-2 leading-relaxed">
-                {selectedNode.description}
-              </p>
+              <div className="shrink-0 p-1 flex flex-col items-center">
+                <Holographic3DCube
+                  icon={
+                    selectedNode.category === 'expedition' ? Ship :
+                    selectedNode.category === 'dataset' ? Database :
+                    selectedNode.category === 'station' ? Building2 : Sparkles
+                  }
+                  size={46}
+                  color="#38bdf8"
+                  enableDrag={true}
+                  autoRotateSpeed={10}
+                />
+              </div>
             </div>
 
             {/* Connected Knowledge Pathways */}

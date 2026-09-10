@@ -41,10 +41,10 @@ export interface UserAccount {
 const STORAGE_KEY_USERS = 'polarsetu_registered_users_v2';
 const STORAGE_KEY_CURRENT_USER = 'polarsetu_current_active_user_v2';
 
-export type AuthListener = (user?: UserAccount) => void;
+export type AuthListener = (user: UserAccount | null) => void;
 const authListeners = new Set<AuthListener>();
 
-function notifyAuth(user?: UserAccount) {
+function notifyAuth(user: UserAccount | null) {
   authListeners.forEach((l) => {
     try {
       l(user);
@@ -52,45 +52,19 @@ function notifyAuth(user?: UserAccount) {
   });
 }
 
-// Baseline default mock user so the app is instantly usable, but real sign-up/sign-in overrides it
-const DEFAULT_GUEST_USER: UserAccount = {
-  id: 'usr-default-1',
-  username: '@polar_explorer_26',
-  name: 'Polar Scholar',
-  displayName: 'Dr. Ananya Sharma',
-  email: 'explorer@ncpor.polar.res.in',
-  role: 'Polar Researcher / Scientist',
-  purpose: 'Academic Research & Thesis',
-  interests: ['Climate Science', 'Glaciology', 'Antarctica Expeditions', 'Marine Biology'],
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-  institution: 'NCPOR Polar Science Division, Goa',
-  followersCount: 14,
-  followingUsernames: ['@dr_rajeshwari_nair', '@prof_vikram_nio'],
-  savedItems: [],
-  securityStrikes: 0,
-  onboardingCompleted: true,
-  joinedDate: 'Jan 2026',
-  bio: 'Cryosphere Research Fellow • Specializing in Antarctic ice shelf grounding line dynamics and remote sensing altimetry.',
-  xp: 340,
-};
-
 class AuthService {
   private getUsers(): UserAccount[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_USERS);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          // Filter out legacy default mock user so user database is clean
+          return parsed.filter((u: UserAccount) => u.id !== 'usr-default-1' && u.username !== '@polar_explorer_26');
         }
       }
     } catch {}
-    const initial = [DEFAULT_GUEST_USER];
-    try {
-      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(initial));
-    } catch {}
-    return initial;
+    return [];
   }
 
   private saveUsers(users: UserAccount[]): void {
@@ -99,19 +73,35 @@ class AuthService {
     } catch {}
   }
 
-  getCurrentUser(): UserAccount {
+  getCurrentUser(): UserAccount | null {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Clear out previous pre-signed default mock user so the app enters Guest Mode
+        if (parsed && (parsed.id === 'usr-default-1' || parsed.username === '@polar_explorer_26')) {
+          localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+          return null;
+        }
+        if (parsed && parsed.id && parsed.username) {
+          return parsed;
+        }
       }
     } catch {}
-    return DEFAULT_GUEST_USER;
+    return null; // Guest mode by default
   }
 
-  setCurrentUser(user: UserAccount): void {
+  isGuest(): boolean {
+    return this.getCurrentUser() === null;
+  }
+
+  setCurrentUser(user: UserAccount | null): void {
     try {
-      localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(user));
+      if (user) {
+        localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+      }
     } catch {}
     notifyAuth(user);
   }
@@ -203,11 +193,12 @@ class AuthService {
   }
 
   logout(): void {
-    this.setCurrentUser(DEFAULT_GUEST_USER);
+    this.setCurrentUser(null);
   }
 
-  completeOnboarding(role: UserRole, purpose: UserPurpose, interests: string[]): UserAccount {
+  completeOnboarding(role: UserRole, purpose: UserPurpose, interests: string[]): UserAccount | null {
     const current = this.getCurrentUser();
+    if (!current) return null;
     const updated: UserAccount = {
       ...current,
       role,
@@ -234,15 +225,33 @@ class AuthService {
 
   updateInterests(interests: string[]): void {
     const current = this.getCurrentUser();
-    this.updateUserRecord({ ...current, interests });
+    if (current) {
+      this.updateUserRecord({ ...current, interests });
+    }
   }
 
   addInterest(interest: string): void {
     const current = this.getCurrentUser();
-    if (!current.interests.includes(interest)) {
+    if (current && !current.interests.includes(interest)) {
       const updatedInterests = [...current.interests, interest];
       this.updateUserRecord({ ...current, interests: updatedInterests });
     }
+  }
+
+  private getGuestSavedItems(): SavedItemRecord[] {
+    try {
+      const stored = localStorage.getItem('polarsetu_guest_saved_items_v2');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {}
+    return [];
+  }
+
+  private saveGuestSavedItems(items: SavedItemRecord[]): void {
+    try {
+      localStorage.setItem('polarsetu_guest_saved_items_v2', JSON.stringify(items));
+    } catch {}
   }
 
   toggleSaveItem(item: {
@@ -260,7 +269,7 @@ class AuthService {
     metadata?: Record<string, any>;
   }): boolean {
     const current = this.getCurrentUser();
-    const saved = [...(current.savedItems || [])];
+    const saved = current ? [...(current.savedItems || [])] : this.getGuestSavedItems();
     const targetId = item.itemId || item.id || '';
     const resolvedType = (item.itemType || item.type || 'research') as 'research' | 'post' | 'media' | 'dataset' | 'expedition';
 
@@ -290,21 +299,28 @@ class AuthService {
       isNowSaved = true;
     }
 
-    this.updateUserRecord({ ...current, savedItems: saved });
+    if (current) {
+      this.updateUserRecord({ ...current, savedItems: saved });
+    } else {
+      this.saveGuestSavedItems(saved);
+    }
     return isNowSaved;
   }
 
   isItemSaved(itemId: string): boolean {
     const current = this.getCurrentUser();
-    return (current.savedItems || []).some((s) => s.itemId === itemId || s.id === itemId);
+    const saved = current ? (current.savedItems || []) : this.getGuestSavedItems();
+    return saved.some((s) => s.itemId === itemId || s.id === itemId);
   }
 
   getSavedItems(): SavedItemRecord[] {
-    return this.getCurrentUser().savedItems || [];
+    const current = this.getCurrentUser();
+    return current ? (current.savedItems || []) : this.getGuestSavedItems();
   }
 
   toggleFollow(username: string): boolean {
     const current = this.getCurrentUser();
+    if (!current) return false;
     const following = [...(current.followingUsernames || [])];
     const clean = username.startsWith('@') ? username : '@' + username;
     const idx = following.indexOf(clean);
@@ -324,6 +340,7 @@ class AuthService {
 
   isFollowing(username: string): boolean {
     const current = this.getCurrentUser();
+    if (!current) return false;
     const clean = username.startsWith('@') ? username : '@' + username;
     return (current.followingUsernames || []).includes(clean);
   }
