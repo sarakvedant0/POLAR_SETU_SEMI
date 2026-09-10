@@ -83,7 +83,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           <div
             id="portal-card-datasets"
             onClick={() => onNavigate('datasets')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-cyan-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-black/90 hover:bg-white/10 border border-white/15 hover:border-white/50 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
@@ -119,7 +119,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           <div
             id="portal-card-media"
             onClick={() => onNavigate('media')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-sky-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-black/90 hover:bg-white/10 border border-white/15 hover:border-white/50 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
@@ -155,7 +155,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           <div
             id="portal-card-research"
             onClick={() => onNavigate('reports')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-emerald-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-black/90 hover:bg-white/10 border border-white/15 hover:border-white/50 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
@@ -191,7 +191,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           <div
             id="portal-card-expeditions"
             onClick={() => onNavigate('expeditions')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#08172c]/85 hover:bg-[#0c2447] border border-cyan-900/60 hover:border-amber-400 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-cyan-950/50 cursor-pointer"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-black/90 hover:bg-white/10 border border-white/15 hover:border-white/50 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 flex items-center justify-center -ml-2 -mt-2 group-hover:scale-110 transition-transform">
@@ -227,7 +227,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           <div
             id="portal-card-ai"
             onClick={() => onNavigate('ai')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#092244]/90 hover:bg-[#0c2f5d] border-2 border-cyan-400/80 hover:border-cyan-300 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-cyan-950/60 hover:shadow-cyan-500/25 cursor-pointer relative overflow-hidden"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-black/95 hover:bg-white/10 border-2 border-white/30 hover:border-white/60 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center justify-between">
@@ -267,7 +267,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           <div
             id="portal-card-claims"
             onClick={() => onNavigate('claims')}
-            className="group flex flex-col justify-between p-4 rounded-2xl bg-[#07241f]/90 hover:bg-[#0a332c] border-2 border-emerald-400/80 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-emerald-950/60 hover:shadow-emerald-500/25 cursor-pointer relative overflow-hidden"
+            className="group flex flex-col justify-between p-4 rounded-2xl bg-black/95 hover:bg-white/10 border-2 border-white/30 hover:border-white/60 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/10 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center justify-between">
@@ -333,7 +333,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
                   key={report.id}
                   id={`research-card-${report.id}`}
                   onClick={() => onNavigate('report-detail', report.id)}
-                  className="group flex flex-col justify-between bg-[#08172c]/85 hover:bg-[#0c2242] border border-cyan-900/50 hover:border-cyan-500/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-950/50 cursor-pointer"
+                  className="group flex flex-col justify-between bg-black/90 hover:bg-white/10 border border-white/15 hover:border-white/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                 >
                   {/* Card Thumbnail */}
                   <div className="relative h-40 w-full overflow-hidden bg-slate-900">
@@ -486,7 +486,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
                 {/* Card 1: Polar Science Basics */}
                 <div
                   onClick={() => onNavigate('learning-detail', 'learn-1')}
-                  className="group relative rounded-xl overflow-hidden h-28 bg-[#08172c] border border-cyan-900/60 hover:border-cyan-400 p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:bg-[#0d2342]"
+                  className="group relative rounded-xl overflow-hidden h-28 bg-black border border-white/15 hover:border-white/50 p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:bg-white/10"
                 >
                   <div className="w-6 h-6 rounded-lg bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
                     <BookOpen className="w-3.5 h-3.5" />
@@ -502,7 +502,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
                 {/* Card 2: Climate Change */}
                 <div
                   onClick={() => onNavigate('learning-detail', 'learn-2')}
-                  className="group relative rounded-xl overflow-hidden h-28 bg-[#08172c] border border-cyan-900/60 hover:border-cyan-400 p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:bg-[#0d2342]"
+                  className="group relative rounded-xl overflow-hidden h-28 bg-black border border-white/15 hover:border-white/50 p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:bg-white/10"
                 >
                   <div className="w-6 h-6 rounded-lg bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -518,7 +518,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
                 {/* Card 3: Glaciers & Ice */}
                 <div
                   onClick={() => onNavigate('learning-detail', 'learn-3')}
-                  className="group relative rounded-xl overflow-hidden h-28 bg-[#08172c] border border-cyan-900/60 hover:border-cyan-400 p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:bg-[#0d2342]"
+                  className="group relative rounded-xl overflow-hidden h-28 bg-black border border-white/15 hover:border-white/50 p-2.5 flex flex-col justify-between cursor-pointer transition-all hover:bg-white/10"
                 >
                   <div className="w-6 h-6 rounded-lg bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
                     <Building2 className="w-3.5 h-3.5" />
@@ -542,7 +542,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           {/* 1. POLAR FACTS WIDGET (Matching screenshot glowing cube card) */}
           <div
             id="home-polar-facts-widget"
-            className="bg-[#08172c]/90 border border-cyan-900/60 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xl relative overflow-hidden"
+            className="bg-black/90 border border-white/15 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xl relative overflow-hidden"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-white flex items-center gap-2 font-['Outfit']">
@@ -609,7 +609,7 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({
           {/* 2. POPULAR MYTH CHECKS WIDGET (Matching screenshot amber badge card) */}
           <div
             id="home-popular-myths-widget"
-            className="bg-[#08172c]/90 border border-cyan-900/60 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xl relative overflow-hidden"
+            className="bg-black/90 border border-white/15 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xl relative overflow-hidden"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-white flex items-center gap-2 font-['Outfit']">

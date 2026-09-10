@@ -17,7 +17,6 @@ import {
   Upload,
   Image as ImageIcon,
   Layers,
-  Box,
 } from 'lucide-react';
 import { ViewMode } from '../types';
 import { Holographic3DCube } from './3d/Holographic3DCube';
@@ -228,7 +227,7 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
   });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [show3dCubes, setShow3dCubes] = useState(false);
+  const [show3dCubes] = useState(true);
   const [rotationSpeed, setRotationSpeed] = useState<number>(12); // seconds per 360 rotation
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -450,32 +449,8 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
           <span className="hidden sm:inline text-slate-300 font-mono">70°45'57"S, 11°44'09"E</span>
         </div>
 
-        {/* Right: Controls & Station Status */}
+        {/* Right: Station Status */}
         <div className="flex items-center gap-2">
-          {/* Upload / Replace Button */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#051329]/80 hover:bg-[#082042] border border-cyan-700/50 text-[11px] text-cyan-200 transition-all cursor-pointer shadow-md"
-            title="Upload or replace bg3.png"
-          >
-            <Upload className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-semibold">{imageLoaded ? 'bg3.png Active' : 'Select bg3.png'}</span>
-          </button>
-
-          {/* 3D Cubes Overlay Toggle */}
-          <button
-            onClick={() => setShow3dCubes(!show3dCubes)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] transition-all cursor-pointer shadow-md ${
-              show3dCubes
-                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                : 'bg-[#051329]/80 hover:bg-[#082042] border-cyan-800/60 text-slate-300'
-            }`}
-            title="Toggle live rotating Three.js 3D cubes overlay"
-          >
-            <Box className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-semibold">{show3dCubes ? '3D Cubes: On' : '3D Cubes: Off'}</span>
-          </button>
-
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#051329]/80 backdrop-blur-md border border-cyan-800/60 text-[11px] text-cyan-300 shadow-md">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
             <span className="font-semibold">NCPOR Network Active</span>
@@ -649,10 +624,10 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
           Positioned below the panoramic image so Learning Hub
           and all bottom nodes are 100% accessible with zero overlap.
       ========================================================= */}
-      <div className="w-full bg-gradient-to-b from-[#030915] via-[#040e1f] to-[#030814] border-b border-cyan-950/70 py-4 sm:py-5 px-4 sm:px-6 lg:px-8">
+      <div className="w-full bg-black border-b border-white/10 py-4 sm:py-5 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1720px] mx-auto">
           {/* Frosted Action Dock */}
-          <div className="p-3.5 sm:p-4 rounded-3xl bg-[#051327]/90 backdrop-blur-xl border border-cyan-900/70 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="p-3.5 sm:p-4 rounded-3xl bg-black/95 backdrop-blur-xl border border-white/15 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-4">
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="relative w-full lg:w-[460px]">
               <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
