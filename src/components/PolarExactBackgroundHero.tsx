@@ -26,6 +26,14 @@ interface PolarExactBackgroundHeroProps {
   onSearchSubmit: (query: string) => void;
 }
 
+const POLAR_REGION_TEMPERATURES = [
+  { label: 'Arctic', value: -8 },
+  { label: 'Greenland', value: -14 },
+  { label: 'Antarctic Coast', value: -18 },
+  { label: 'East Antarctica', value: -28 },
+  { label: 'Southern Ocean', value: -2 },
+];
+
 interface ExactNodeHotspot {
   id: string;
   name: string;
@@ -226,12 +234,18 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
     }
   });
   const [imageLoaded, setImageLoaded] = useState(false);
+<<<<<<< HEAD
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [show3dCubes] = useState(true);
   const [rotationSpeed, setRotationSpeed] = useState<number>(12); // seconds per 360 rotation
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+=======
+  const [selectedRegionIndex, setSelectedRegionIndex] = useState(2);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const selectedRegion = POLAR_REGION_TEMPERATURES[selectedRegionIndex];
+>>>>>>> 14abb3b (Update polar homepage styling and navigation)
   const [imgBox, setImgBox] = useState<{
     left: number;
     top: number;
@@ -444,9 +458,22 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
         {/* Left: Polar Observatory Telemetry Badge */}
         <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#051329]/80 backdrop-blur-md border border-cyan-700/50 shadow-lg text-[11px] sm:text-xs text-cyan-200">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="font-semibold text-white">LIVE POLAR TELEMETRY</span>
+          <span className="font-semibold text-white">POLAR TEMP</span>
           <span className="hidden sm:inline text-cyan-400/60">•</span>
-          <span className="hidden sm:inline text-slate-300 font-mono">70°45'57"S, 11°44'09"E</span>
+          <div className="hidden sm:flex items-center gap-2 text-slate-200">
+            <span className="font-medium text-cyan-200 min-w-[62px]">{selectedRegion.label}</span>
+            <input
+              type="range"
+              min={0}
+              max={POLAR_REGION_TEMPERATURES.length - 1}
+              step={1}
+              value={selectedRegionIndex}
+              onChange={(e) => setSelectedRegionIndex(Number(e.target.value))}
+              aria-label="Select polar region temperature"
+              className="w-14 accent-cyan-400 cursor-pointer"
+            />
+            <span className="font-mono text-slate-300">{selectedRegion.value}°C</span>
+          </div>
         </div>
 
         {/* Right: Station Status */}
