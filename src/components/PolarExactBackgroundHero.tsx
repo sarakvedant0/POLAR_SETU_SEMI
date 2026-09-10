@@ -21,6 +21,14 @@ interface PolarExactBackgroundHeroProps {
   onSearchSubmit: (query: string) => void;
 }
 
+const POLAR_REGION_TEMPERATURES = [
+  { label: 'Arctic', value: -8 },
+  { label: 'Greenland', value: -14 },
+  { label: 'Antarctic Coast', value: -18 },
+  { label: 'East Antarctica', value: -28 },
+  { label: 'Southern Ocean', value: -2 },
+];
+
 interface ExactNodeHotspot {
   id: string;
   name: string;
@@ -215,7 +223,9 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
   const [searchInput, setSearchInput] = useState('');
   const [imageSrc, setImageSrc] = useState<string>('/bg3.png');
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [selectedRegionIndex, setSelectedRegionIndex] = useState(2);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedRegion = POLAR_REGION_TEMPERATURES[selectedRegionIndex];
   const [imgBox, setImgBox] = useState<{
     left: number;
     top: number;
@@ -335,9 +345,23 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
         {/* Left: Polar Observatory Telemetry Badge */}
         <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#051329]/80 backdrop-blur-md border border-cyan-700/50 shadow-lg text-[11px] sm:text-xs text-cyan-200">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="font-semibold text-white">LIVE POLAR TELEMETRY</span>
+          <span className="font-semibold text-white">POLAR TEMP</span>
           <span className="hidden sm:inline text-cyan-400/60">•</span>
-          <span className="hidden sm:inline text-slate-300 font-mono">70°45'57"S, 11°44'09"E</span>
+          <div className="hidden sm:flex items-center gap-2 text-slate-200">
+            <select
+              value={selectedRegionIndex}
+              onChange={(e) => setSelectedRegionIndex(Number(e.target.value))}
+              aria-label="Select polar region"
+              className="appearance-none bg-[#071a2d] border border-cyan-700/60 rounded-full px-2 py-1 text-[11px] font-medium text-cyan-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 cursor-pointer"
+            >
+              {POLAR_REGION_TEMPERATURES.map((region, index) => (
+                <option key={region.label} value={index}>
+                  {region.label}
+                </option>
+              ))}
+            </select>
+            <span className="font-mono text-slate-300">{selectedRegion.value}°C</span>
+          </div>
         </div>
 
         {/* Right: Station Status Indicator */}

@@ -16,7 +16,6 @@ import {
   MessageSquare,
   GraduationCap,
   Sparkles,
-  Shield,
   Bookmark,
   Plus,
   KeyRound,
@@ -159,16 +158,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Polar AI</span>
           </button>
 
-          {/* Admin Portal Direct Button (Key is never displayed in plain-text) */}
-          <button
-            id="nav-admin-portal-button"
-            onClick={() => handleItemClick('admin')}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-xs font-semibold text-cyan-300 hover:text-white transition-all shadow-sm cursor-pointer"
-          >
-            <Shield className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Admin</span>
-          </button>
-
           {/* Search Button */}
           <button
             id="nav-search-button"
@@ -277,15 +266,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <User className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Switch User / Sign Up</span>
-                  </button>
-
-                  <button
-                    id="dropdown-admin-btn"
-                    onClick={() => handleItemClick('admin')}
-                    className="w-full text-left px-3 py-2 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800/60 flex items-center gap-2 text-xs cursor-pointer"
-                  >
-                    <Shield className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Admin Portal</span>
                   </button>
                 </div>
               </div>
