@@ -1,0 +1,6 @@
+{
+  "name": "POLARSETU - India's Polar Science & Exploration Ecosystem",
+  "description": "Explore India's polar expeditions, scientific research, datasets, discoveries, facts, media and stories from the Arctic and Antarctic.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

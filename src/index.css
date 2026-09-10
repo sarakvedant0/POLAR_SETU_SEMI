@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060e1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+/* Polar Glow and Glass Effects */
+.glass-panel {
+  background: rgba(8, 20, 38, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+
+.glass-panel-subtle {
+  background: rgba(10, 26, 50, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(14, 35, 68, 0.85);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 25px rgba(14, 165, 233, 0.18);
+}
+
+.polar-glow {
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.25);
+}
+
+.polar-glow-lg {
+  box-shadow: 0 0 50px rgba(56, 189, 248, 0.35);
+}
+
+.polar-glow-cyan {
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+}
+
+/* Water Ripple Animation */
+@keyframes ripple-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple-ring 3.5s cubic-bezier(0.1, 0.2, 0.7, 1) infinite;
+}
+
+.animate-ripple-delayed {
+  animation: ripple-ring 3.5s cubic-bezier(0.1, 0.2, 0.7, 1) infinite;
+  animation-delay: 1.75s;
+}
+
+/* Floating animation */
+@keyframes float-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float-subtle 4s ease-in-out infinite;
+}
+
+/* Pulsing dashed line */
+@keyframes dash-pulse {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-dash {
+  stroke-dasharray: 6, 6;
+  animation: dash-pulse 2s linear infinite;
+}
+
