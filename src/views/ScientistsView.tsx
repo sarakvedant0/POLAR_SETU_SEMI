@@ -111,7 +111,12 @@ export const ScientistsView: React.FC<ScientistsViewProps> = ({ onNavigate }) =>
                   <span>{scientist.publicationsCount} Publications</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-cyan-300 font-semibold">
-                  <span>{scientist.expeditions.length} Expeditions</span>
+                  <span>
+                    {Array.isArray(scientist.expeditions)
+                      ? scientist.expeditions.length
+                      : (scientist.expeditionsCount || scientist.expeditions || 0)}{' '}
+                    Expeditions
+                  </span>
                 </div>
               </div>
 

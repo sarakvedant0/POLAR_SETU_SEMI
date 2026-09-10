@@ -37,7 +37,7 @@ export const ClaimDetailView: React.FC<ClaimDetailViewProps> = ({ claimId, onNav
     }
   };
 
-  const getStatusBadge = (status: ClaimStatus) => {
+  const getStatusBadge = (status: ClaimStatus | string) => {
     switch (status) {
       case 'VERIFIED':
         return (

@@ -1,8 +1,26 @@
-import { Dataset, ResearchReport } from '../types';
-import { DATASETS as INITIAL_DATASETS, RESEARCH_REPORTS as INITIAL_REPORTS } from '../data/mockData';
+import {
+  Dataset,
+  ResearchReport,
+  Expedition,
+  ExpeditionMedia,
+  PolarFact,
+  CommunityVoicePost,
+  UserReportTicket,
+  CyberWarningLog,
+} from '../types';
+import {
+  DATASETS as INITIAL_DATASETS,
+  RESEARCH_REPORTS as INITIAL_REPORTS,
+  EXPEDITIONS as INITIAL_EXPEDITIONS,
+  EXPEDITION_MEDIA as INITIAL_MEDIA,
+  POLAR_FACTS as INITIAL_FACTS,
+  COMMUNITY_POSTS as INITIAL_POSTS,
+} from '../data/mockData';
+import { aiVerificationService } from './aiVerificationService';
 
 // Master Admin Access Key for verified NCPOR Editorial & Data Officers
-export const MASTER_ADMIN_KEY = 'POLAR-ADMIN-NCPOR-2026';
+// Security enhanced: Protected key with special characters, not displayed in plain text in UI
+export const MASTER_ADMIN_KEY = 'POLAR#SECURE-ADMIN@2026';
 
 export interface CommentItem {
   id: string;
@@ -21,6 +39,12 @@ export interface ItemInteractions {
 
 const STORAGE_KEY_DATASETS = 'polarsetu_verified_datasets_v2';
 const STORAGE_KEY_REPORTS = 'polarsetu_verified_reports_v2';
+const STORAGE_KEY_EXPEDITIONS = 'polarsetu_verified_expeditions_v2';
+const STORAGE_KEY_MEDIA = 'polarsetu_verified_media_v2';
+const STORAGE_KEY_FACTS = 'polarsetu_verified_facts_v2';
+const STORAGE_KEY_POSTS = 'polarsetu_verified_community_posts_v2';
+const STORAGE_KEY_USER_REPORTS = 'polarsetu_user_moderation_reports_v2';
+const STORAGE_KEY_CYBER_LOGS = 'polarsetu_cyber_security_logs_v2';
 const STORAGE_KEY_INTERACTIONS = 'polarsetu_live_interactions_v2';
 const STORAGE_KEY_ADMIN_AUTH = 'polarsetu_admin_session_auth';
 
@@ -485,7 +509,7 @@ class PolarDataService {
     const reports = this.getReports();
     const idx = reports.findIndex((r) => r.id === id);
     if (idx !== -1) {
-      const current = parseInt(reports[idx].views || '0', 10) || 0;
+      const current = parseInt(String(reports[idx].views || '0'), 10) || 0;
       const next = current + 1;
       reports[idx] = { ...reports[idx], views: String(next) };
       this.saveReports([...reports]);
@@ -548,6 +572,322 @@ class PolarDataService {
     if (filtered.length === current.length) return false;
     this.saveReports(filtered);
     return true;
+  }
+
+  // =========================================================================
+  // EXPEDITIONS CRUD
+  // =========================================================================
+  getExpeditions(): Expedition[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_EXPEDITIONS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    this.saveExpeditions(INITIAL_EXPEDITIONS);
+    return INITIAL_EXPEDITIONS;
+  }
+
+  saveExpeditions(expeditions: Expedition[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY_EXPEDITIONS, JSON.stringify(expeditions));
+    } catch {}
+    notifyListeners();
+  }
+
+  addExpedition(expedition: Omit<Expedition, 'id'> & { id?: string }): Expedition {
+    const current = this.getExpeditions();
+    const id = expedition.id || `exp-${Date.now().toString(36)}`;
+    const newExp: Expedition = { ...expedition, id };
+    const updated = [newExp, ...current];
+    this.saveExpeditions(updated);
+    return newExp;
+  }
+
+  updateExpedition(id: string, updates: Partial<Expedition>): Expedition | null {
+    const current = this.getExpeditions();
+    const idx = current.findIndex((e) => e.id === id);
+    if (idx === -1) return null;
+    const updatedExp = { ...current[idx], ...updates };
+    current[idx] = updatedExp;
+    this.saveExpeditions([...current]);
+    return updatedExp;
+  }
+
+  deleteExpedition(id: string): boolean {
+    const current = this.getExpeditions();
+    const filtered = current.filter((e) => e.id !== id);
+    if (filtered.length === current.length) return false;
+    this.saveExpeditions(filtered);
+    return true;
+  }
+
+  // =========================================================================
+  // MEDIA & VISUALS CRUD
+  // =========================================================================
+  getMedia(): ExpeditionMedia[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_MEDIA);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    this.saveMedia(INITIAL_MEDIA);
+    return INITIAL_MEDIA;
+  }
+
+  saveMedia(media: ExpeditionMedia[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY_MEDIA, JSON.stringify(media));
+    } catch {}
+    notifyListeners();
+  }
+
+  addMedia(mediaItem: Omit<ExpeditionMedia, 'id'> & { id?: string }): ExpeditionMedia {
+    const current = this.getMedia();
+    const id = mediaItem.id || `media-${Date.now().toString(36)}`;
+    const aiVerification = aiVerificationService.crossVerify(mediaItem.title, mediaItem.caption, 'Visual Observation');
+    const newMedia: ExpeditionMedia = {
+      ...mediaItem,
+      id,
+      likes: 0,
+      commentsCount: 0,
+      aiVerification,
+    };
+    const updated = [newMedia, ...current];
+    this.saveMedia(updated);
+    return newMedia;
+  }
+
+  updateMedia(id: string, updates: Partial<ExpeditionMedia>): ExpeditionMedia | null {
+    const current = this.getMedia();
+    const idx = current.findIndex((m) => m.id === id);
+    if (idx === -1) return null;
+    const updated = { ...current[idx], ...updates };
+    current[idx] = updated;
+    this.saveMedia([...current]);
+    return updated;
+  }
+
+  deleteMedia(id: string): boolean {
+    const current = this.getMedia();
+    const filtered = current.filter((m) => m.id !== id);
+    if (filtered.length === current.length) return false;
+    this.saveMedia(filtered);
+    return true;
+  }
+
+  // =========================================================================
+  // FACTS & MYTHS CRUD
+  // =========================================================================
+  getFacts(): PolarFact[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_FACTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    this.saveFacts(INITIAL_FACTS);
+    return INITIAL_FACTS;
+  }
+
+  saveFacts(facts: PolarFact[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY_FACTS, JSON.stringify(facts));
+    } catch {}
+    notifyListeners();
+  }
+
+  addFact(fact: Omit<PolarFact, 'id'> & { id?: string }): PolarFact {
+    const current = this.getFacts();
+    const id = fact.id || `fact-${Date.now().toString(36)}`;
+    const newFact: PolarFact = { ...fact, id };
+    const updated = [newFact, ...current];
+    this.saveFacts(updated);
+    return newFact;
+  }
+
+  updateFact(id: string, updates: Partial<PolarFact>): PolarFact | null {
+    const current = this.getFacts();
+    const idx = current.findIndex((f) => f.id === id);
+    if (idx === -1) return null;
+    const updated = { ...current[idx], ...updates };
+    current[idx] = updated;
+    this.saveFacts([...current]);
+    return updated;
+  }
+
+  deleteFact(id: string): boolean {
+    const current = this.getFacts();
+    const filtered = current.filter((f) => f.id !== id);
+    if (filtered.length === current.length) return false;
+    this.saveFacts(filtered);
+    return true;
+  }
+
+  // =========================================================================
+  // COMMUNITY VOICE POSTS CRUD
+  // =========================================================================
+  getCommunityPosts(): CommunityVoicePost[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_POSTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    this.saveCommunityPosts(INITIAL_POSTS);
+    return INITIAL_POSTS;
+  }
+
+  saveCommunityPosts(posts: CommunityVoicePost[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(posts));
+    } catch {}
+    notifyListeners();
+  }
+
+  addCommunityPost(post: Omit<CommunityVoicePost, 'id' | 'createdAt'> & { id?: string }): CommunityVoicePost {
+    const current = this.getCommunityPosts();
+    const id = post.id || `post-${Date.now().toString(36)}`;
+    // Run multi-model AI cross verification on the uploaded content
+    const aiAudit = aiVerificationService.crossVerify(post.title, post.content, post.type);
+    const newPost: CommunityVoicePost = {
+      ...post,
+      id,
+      likes: 0,
+      commentsCount: 0,
+      evidenceWatchers: 0,
+      createdAt: 'Just now',
+      status: aiAudit.batchStatus === 'VERIFIED' ? 'VERIFIED' : aiAudit.batchStatus === 'PARTIALLY_VERIFIED' ? 'EVIDENCE_FOUND' : 'UNDER_REVIEW',
+    };
+    const updated = [newPost, ...current];
+    this.saveCommunityPosts(updated);
+    return newPost;
+  }
+
+  deleteCommunityPost(id: string): boolean {
+    const current = this.getCommunityPosts();
+    const filtered = current.filter((p) => p.id !== id);
+    if (filtered.length === current.length) return false;
+    this.saveCommunityPosts(filtered);
+    return true;
+  }
+
+  // =========================================================================
+  // USER REPORTS & AI MODERATION QUEUE
+  // =========================================================================
+  getUserReports(): UserReportTicket[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_USER_REPORTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  }
+
+  saveUserReports(reports: UserReportTicket[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY_USER_REPORTS, JSON.stringify(reports));
+    } catch {}
+    notifyListeners();
+  }
+
+  submitUserReport(data: {
+    targetId: string;
+    targetType: 'research' | 'post' | 'media' | 'dataset' | 'expedition';
+    targetTitle: string;
+    reportedByUsername: string;
+    reason: string;
+    details: string;
+  }): UserReportTicket {
+    const current = this.getUserReports();
+    // Multi-model AI cross-verifies the reported item and reason
+    const aiAudit = aiVerificationService.crossVerify(data.targetTitle, data.details, data.reason);
+    const newReport: UserReportTicket = {
+      id: `rep-${Date.now().toString(36)}`,
+      targetId: data.targetId,
+      targetType: data.targetType,
+      targetTitle: data.targetTitle,
+      reportedByUsername: data.reportedByUsername,
+      reason: data.reason,
+      details: data.details,
+      timestamp: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      status: 'PENDING_REVIEW',
+      aiAudit,
+    };
+    const updated = [newReport, ...current];
+    this.saveUserReports(updated);
+    return newReport;
+  }
+
+  resolveUserReport(reportId: string, action: 'MARK_SAFE' | 'REMOVE_CONTENT' | 'WARNING_ISSUED', adminNotes?: string): boolean {
+    const current = this.getUserReports();
+    const idx = current.findIndex((r) => r.id === reportId);
+    if (idx === -1) return false;
+
+    const report = current[idx];
+    if (action === 'REMOVE_CONTENT') {
+      report.status = 'CONTENT_REMOVED';
+      // Automatically remove target if found
+      if (report.targetType === 'research') this.deleteReport(report.targetId);
+      if (report.targetType === 'post') this.deleteCommunityPost(report.targetId);
+      if (report.targetType === 'media') this.deleteMedia(report.targetId);
+      if (report.targetType === 'dataset') this.deleteDataset(report.targetId);
+      if (report.targetType === 'expedition') this.deleteExpedition(report.targetId);
+    } else if (action === 'MARK_SAFE') {
+      report.status = 'VERIFIED_ACCURATE';
+    } else {
+      report.status = 'WARNING_ISSUED';
+    }
+    report.adminNotes = adminNotes || `Resolved by NCPOR Admin with status: ${report.status}`;
+    current[idx] = report;
+    this.saveUserReports([...current]);
+    return true;
+  }
+
+  // =========================================================================
+  // CYBERSECURITY INCIDENT LOGS
+  // =========================================================================
+  getCyberLogs(): CyberWarningLog[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CYBER_LOGS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  }
+
+  logCyberIncident(incident: {
+    username: string;
+    reason: string;
+    severity: 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    blockedTextSnippet: string;
+    actionTaken: string;
+  }): CyberWarningLog {
+    const current = this.getCyberLogs();
+    const log: CyberWarningLog = {
+      id: `cyber-${Date.now().toString(36)}`,
+      username: incident.username,
+      reason: incident.reason,
+      severity: incident.severity,
+      blockedTextSnippet: incident.blockedTextSnippet.slice(0, 140),
+      timestamp: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      actionTaken: incident.actionTaken,
+    };
+    const updated = [log, ...current];
+    try {
+      localStorage.setItem(STORAGE_KEY_CYBER_LOGS, JSON.stringify(updated));
+    } catch {}
+    notifyListeners();
+    return log;
   }
 
   // Live Interactions (Real Likes & Real Comments - No fake inflated values)

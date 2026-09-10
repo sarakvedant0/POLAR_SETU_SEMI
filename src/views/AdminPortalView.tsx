@@ -11,7 +11,6 @@ import {
   Trash2,
   Key,
   Lock,
-  Unlock,
   Download,
   FileText,
   Save,
@@ -24,13 +23,48 @@ import {
   MapPin,
   Calendar,
   AlertCircle,
+  Camera,
+  Compass,
+  Lightbulb,
+  Flag,
+  UserCheck,
+  Users,
+  Eye,
+  EyeOff,
+  Radio,
+  Cpu,
+  Check,
 } from 'lucide-react';
-import { ViewMode, Dataset, ResearchReport } from '../types';
-import { polarDataService, MASTER_ADMIN_KEY } from '../services/dataService';
+import {
+  ViewMode,
+  Dataset,
+  ResearchReport,
+  Expedition,
+  ExpeditionMedia,
+  PolarFact,
+  UserReportTicket,
+  CyberWarningLog,
+} from '../types';
+import { polarDataService } from '../services/dataService';
+import { authService, UserAccount } from '../services/authService';
+import { aiVerificationService } from '../services/aiVerificationService';
+import { TopLeftBackButton } from '../components/TopLeftBackButton';
+import { AIVerificationCard } from '../components/AIVerificationCard';
 
 interface AdminPortalViewProps {
   onNavigate: (view: ViewMode, id?: string) => void;
 }
+
+type AdminTab =
+  | 'overview'
+  | 'datasets'
+  | 'reports'
+  | 'expeditions'
+  | 'media'
+  | 'facts'
+  | 'moderation'
+  | 'cyber'
+  | 'users';
 
 export const AdminPortalView: React.FC<AdminPortalViewProps> = ({ onNavigate }) => {
   // Authentication State
@@ -38,19 +72,76 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({ onNavigate }) 
     polarDataService.isAdminAuthenticated()
   );
   const [inputKey, setInputKey] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Active Management Tab
-  const [activeTab, setActiveTab] = useState<'datasets' | 'reports' | 'claims' | 'studio'>('datasets');
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
   // Live Data State
   const [datasets, setDatasets] = useState<Dataset[]>(polarDataService.getDatasets());
   const [reports, setReports] = useState<ResearchReport[]>(polarDataService.getReports());
+  const [expeditions, setExpeditions] = useState<Expedition[]>(polarDataService.getExpeditions());
+  const [mediaItems, setMediaItems] = useState<ExpeditionMedia[]>(polarDataService.getMedia());
+  const [facts, setFacts] = useState<PolarFact[]>(polarDataService.getFacts());
+  const [userReports, setUserReports] = useState<UserReportTicket[]>(polarDataService.getUserReports());
+  const [cyberLogs, setCyberLogs] = useState<CyberWarningLog[]>(polarDataService.getCyberLogs());
+  const [users, setUsers] = useState<UserAccount[]>(authService.getAllRegisteredUsers());
 
-  // Search & Filter
-  const [datasetSearch, setDatasetSearch] = useState('');
+  // Search Filter
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal State for Dataset
+  // Toast Notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Synchronize with polarDataService
+  useEffect(() => {
+    const unsubData = polarDataService.subscribe(() => {
+      setDatasets(polarDataService.getDatasets());
+      setReports(polarDataService.getReports());
+      setExpeditions(polarDataService.getExpeditions());
+      setMediaItems(polarDataService.getMedia());
+      setFacts(polarDataService.getFacts());
+      setUserReports(polarDataService.getUserReports());
+      setCyberLogs(polarDataService.getCyberLogs());
+      setIsAuthenticated(polarDataService.isAdminAuthenticated());
+    });
+    const unsubAuth = authService.subscribe(() => {
+      setUsers(authService.getAllRegisteredUsers());
+    });
+    return () => {
+      unsubData();
+      unsubAuth();
+    };
+  }, []);
+
+  // Login handler
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (polarDataService.loginAdmin(inputKey)) {
+      setIsAuthenticated(true);
+      setAuthError(null);
+      showToast('Authenticated as NCPOR Senior Polar Data Administrator.');
+    } else {
+      setAuthError('Access Denied: Invalid Security Key. Incident flagged to NCPOR Cyber Division.');
+    }
+  };
+
+  const handleLogout = () => {
+    polarDataService.logoutAdmin();
+    setIsAuthenticated(false);
+    setInputKey('');
+  };
+
+  // =========================================================================
+  // MODAL STATES FOR ENTITY CRUD
+  // =========================================================================
+
+  // 1. DATASET MODAL
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [editingDatasetId, setEditingDatasetId] = useState<string | null>(null);
   const [datasetForm, setDatasetForm] = useState<Partial<Dataset>>({
@@ -60,33 +151,33 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({ onNavigate }) 
     timeframe: '',
     location: '',
     coordinates: '',
-    samplesCount: 10000,
-    fileSize: '25 MB',
+    samplesCount: 15000,
+    fileSize: '32 MB',
     format: 'CSV / NetCDF-4',
     institution: 'National Centre for Polar and Ocean Research (NCPOR)',
     doi: '10.5281/zenodo.',
     dataPoints: [
       { label: '2020', value: 10, unit: '' },
-      { label: '2022', value: 15, unit: '' },
-      { label: '2024', value: 22, unit: '' },
+      { label: '2022', value: 16, unit: '' },
+      { label: '2024', value: 24, unit: '' },
     ],
   });
 
-  // Modal State for Research Report
+  // 2. REPORT MODAL
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [editingReportId, setEditingReportId] = useState<string | null>(null);
   const [reportForm, setReportForm] = useState<Partial<ResearchReport>>({
     title: '',
     abstract: '',
-    authors: ['Dr. Polar Researcher', 'NCPOR Science Group'],
+    authors: ['Dr. Polar Researcher', 'NCPOR Science Division'],
     institution: 'National Centre for Polar and Ocean Research (NCPOR)',
     date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
     researchArea: 'Climate Science',
     region: 'Antarctica',
-    expedition: '43rd Indian Scientific Expedition to Antarctica',
-    doi: '10.1016/j.polar.2025.04.101',
+    expedition: '44th Indian Scientific Expedition to Antarctica',
+    doi: '10.1016/j.polar.2026.01.001',
     imageUrl: 'https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=800&q=80',
-    readTime: '5 min read',
+    readTime: '6 min read',
     footerLinkType: 'expedition',
     footerLinkLabel: 'Expedition →',
     aiSummary: {
@@ -98,290 +189,234 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({ onNavigate }) 
     evidenceChain: [
       {
         claim: 'Verified observational correlation',
-        evidence: 'Field telemetry and satellite altimetry sensors.',
+        evidence: 'Field ground truth sensor readings.',
         source: 'NCPOR Grounding Archive',
-        type: 'Satellite',
+        type: 'Sensor Array',
       },
     ],
   });
 
-  // Notification Banner
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // 3. EXPEDITION MODAL
+  const [isExpeditionModalOpen, setIsExpeditionModalOpen] = useState(false);
+  const [editingExpeditionId, setEditingExpeditionId] = useState<string | null>(null);
+  const [expeditionForm, setExpeditionForm] = useState<Partial<Expedition>>({
+    number: 44,
+    title: '44th Indian Scientific Expedition to Antarctica (ISEA)',
+    season: '2024–2025',
+    vessel: 'MV Vasiliy Golovnin',
+    leader: 'Dr. Alok Kumar (NCPOR)',
+    objectives: ['Glaciological balance in Dronning Maud Land', 'Atmospheric boundary layer profiling'],
+    keyFindings: ['Completed winter maintenance at Maitri and Bharati stations.'],
+    status: 'COMPLETED',
+  });
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
+  // 4. MEDIA MODAL
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
+  const [mediaForm, setMediaForm] = useState<Partial<ExpeditionMedia>>({
+    title: '',
+    caption: '',
+    type: 'photo',
+    url: 'https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=1200&q=80',
+    location: 'Maitri Station, Schirmacher Oasis',
+    year: '2026',
+    credit: 'NCPOR Media Cell',
+  });
 
-  // Subscribe to data changes
-  useEffect(() => {
-    const unsub = polarDataService.subscribe(() => {
-      setDatasets(polarDataService.getDatasets());
-      setReports(polarDataService.getReports());
-      setIsAuthenticated(polarDataService.isAdminAuthenticated());
-    });
-    return unsub;
-  }, []);
+  // 5. FACT MODAL
+  const [isFactModalOpen, setIsFactModalOpen] = useState(false);
+  const [editingFactId, setEditingFactId] = useState<string | null>(null);
+  const [factForm, setFactForm] = useState<Partial<PolarFact>>({
+    statement: '',
+    isFact: true,
+    explanation: '',
+    category: 'Climate',
+    verifiedSource: 'NCPOR & Intergovernmental Panel on Climate Change (IPCC)',
+  });
 
-  // Handle Login
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (polarDataService.loginAdmin(inputKey)) {
-      setIsAuthenticated(true);
-      setAuthError(null);
-      showToast('Welcome, NCPOR Polar Data Administrator.');
-    } else {
-      setAuthError('Invalid Master Access Key. Please check the credentials.');
-    }
-  };
+  // =========================================================================
+  // CRUD HANDLERS
+  // =========================================================================
 
-  const handleUseOfficialKey = () => {
-    setInputKey(MASTER_ADMIN_KEY);
-    if (polarDataService.loginAdmin(MASTER_ADMIN_KEY)) {
-      setIsAuthenticated(true);
-      setAuthError(null);
-      showToast('Unlocked with Master Key: ' + MASTER_ADMIN_KEY);
-    }
-  };
-
-  const handleLogout = () => {
-    polarDataService.logoutAdmin();
-    setIsAuthenticated(false);
-    setInputKey('');
-    showToast('Logged out of Admin Console.');
-  };
-
-  // Dataset Actions
-  const handleOpenNewDatasetModal = () => {
-    setEditingDatasetId(null);
-    setDatasetForm({
-      id: `data-${Date.now().toString(36)}`,
-      title: '',
-      description: '',
-      parameter: 'Temperature / Thickness / Concentration',
-      timeframe: '2015 – 2025',
-      location: 'Bharati Station, Larsemann Hills, East Antarctica',
-      coordinates: '69°24′28″S, 76°11′14″E',
-      samplesCount: 25000,
-      fileSize: '35 MB',
-      format: 'CSV / NetCDF-4',
-      institution: 'National Centre for Polar and Ocean Research (NCPOR)',
-      doi: '10.5281/zenodo.' + Math.floor(1000000 + Math.random() * 9000000),
-      dataPoints: [
-        { label: '2020', value: 12.4, unit: '' },
-        { label: '2022', value: 14.8, unit: '' },
-        { label: '2024', value: 17.2, unit: '' },
-      ],
-    });
-    setIsDatasetModalOpen(true);
-  };
-
-  const handleOpenEditDatasetModal = (dataset: Dataset) => {
-    setEditingDatasetId(dataset.id);
-    setDatasetForm({ ...dataset });
-    setIsDatasetModalOpen(true);
-  };
-
+  // Dataset Save
   const handleSaveDataset = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!datasetForm.title || !datasetForm.parameter) {
-      alert('Please provide a Title and Parameter for the dataset.');
-      return;
-    }
-
+    if (!datasetForm.title || !datasetForm.parameter) return;
     if (editingDatasetId) {
       polarDataService.updateDataset(editingDatasetId, datasetForm);
-      showToast(`Dataset "${datasetForm.title}" updated successfully.`);
+      showToast(`Dataset "${datasetForm.title}" successfully updated.`);
     } else {
       polarDataService.addDataset(datasetForm as Dataset);
-      showToast(`New Dataset "${datasetForm.title}" registered.`);
+      showToast(`New Dataset "${datasetForm.title}" published to live repository.`);
     }
-
     setIsDatasetModalOpen(false);
     setEditingDatasetId(null);
   };
 
-  const handleDeleteDataset = (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to delete dataset "${title}"? This cannot be undone.`)) {
-      polarDataService.deleteDataset(id);
-      showToast(`Dataset "${title}" deleted.`);
-    }
-  };
-
-  const handleResetDatasetsToBaseline = () => {
-    if (window.confirm('Reset all datasets to the official NCPOR verified baseline?')) {
-      polarDataService.resetDatasets();
-      showToast('Datasets reset to NCPOR verified baseline.');
-    }
-  };
-
-  // Report Actions
-  const handleOpenNewReportModal = () => {
-    setEditingReportId(null);
-    setReportForm({
-      id: `report-${Date.now().toString(36)}`,
-      title: '',
-      abstract: '',
-      authors: ['Dr. Polar Scientist', 'NCPOR Glaciology Team'],
-      institution: 'National Centre for Polar and Ocean Research (NCPOR)',
-      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-      researchArea: 'Climate Science',
-      region: 'Antarctica',
-      expedition: '43rd Indian Scientific Expedition to Antarctica',
-      doi: '10.1016/j.polar.2025.' + Math.floor(100 + Math.random() * 900),
-      imageUrl: 'https://images.unsplash.com/photo-1516972810927-80185027ca84?auto=format&fit=crop&w=800&q=80',
-      readTime: '6 min read',
-      views: '0',
-      comments: 0,
-      citations: 0,
-      footerLinkType: 'expedition',
-      footerLinkLabel: 'Expedition →',
-      aiSummary: {
-        overview: 'Comprehensive empirical synthesis conducted during polar field operations.',
-        whyItMatters: 'Provides ground truth calibration for cryospheric climate models.',
-        keyFindings: ['Observed distinct physical anomaly during summer melt season.'],
-        whatRemainsUncertain: 'Winter polar-night boundary layer dynamics remain under investigation.',
-      },
-      evidenceChain: [
-        {
-          claim: 'Empirical data corroborated by ground sensors',
-          evidence: 'Calibrated weather station sensors and satellite altimetry passes.',
-          source: 'NCPOR Polar Telemetry Database',
-          type: 'Satellite',
-        },
-      ],
-    });
-    setIsReportModalOpen(true);
-  };
-
-  const handleOpenEditReportModal = (report: ResearchReport) => {
-    setEditingReportId(report.id);
-    setReportForm({ ...report });
-    setIsReportModalOpen(true);
-  };
-
+  // Report Save
   const handleSaveReport = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reportForm.title || !reportForm.abstract) {
-      alert('Please provide a Title and Abstract for the research report.');
-      return;
-    }
+    if (!reportForm.title || !reportForm.abstract) return;
+
+    // Run AI Cross Verification
+    const aiAudit = aiVerificationService.crossVerify(
+      reportForm.title,
+      reportForm.abstract,
+      reportForm.researchArea
+    );
+
+    const updatedData = {
+      ...reportForm,
+      aiSummary: {
+        overview: reportForm.aiSummary?.overview || reportForm.abstract?.slice(0, 160) + '...',
+        whyItMatters: reportForm.aiSummary?.whyItMatters || 'Crucial for cryospheric baseline modeling.',
+        keyFindings: reportForm.aiSummary?.keyFindings || [reportForm.title || ''],
+        whatRemainsUncertain: reportForm.aiSummary?.whatRemainsUncertain || 'Extended multidecadal tracking required.',
+      },
+    };
 
     if (editingReportId) {
-      polarDataService.updateReport(editingReportId, reportForm);
-      showToast(`Research paper "${reportForm.title}" updated.`);
+      polarDataService.updateReport(editingReportId, updatedData);
+      showToast(`Research report updated with multi-model AI audit: ${aiAudit.batchStatus}.`);
     } else {
-      polarDataService.addReport(reportForm as ResearchReport);
-      showToast(`Research publication "${reportForm.title}" registered.`);
+      polarDataService.addReport(updatedData as ResearchReport);
+      showToast(`New Research Paper published with AI Consensus: ${aiAudit.batchStatus}.`);
     }
-
     setIsReportModalOpen(false);
     setEditingReportId(null);
   };
 
-  const handleDeleteReport = (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to delete research report "${title}"?`)) {
-      polarDataService.deleteReport(id);
-      showToast(`Research report removed.`);
+  // Expedition Save
+  const handleSaveExpedition = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expeditionForm.title || !expeditionForm.leader) return;
+    if (editingExpeditionId) {
+      polarDataService.updateExpedition(editingExpeditionId, expeditionForm);
+      showToast(`Expedition "${expeditionForm.title}" updated.`);
+    } else {
+      polarDataService.addExpedition(expeditionForm as Expedition);
+      showToast(`Expedition "${expeditionForm.title}" added to active polar registry.`);
     }
+    setIsExpeditionModalOpen(false);
+    setEditingExpeditionId(null);
   };
 
-  // Filtered Datasets
-  const filteredDatasets = datasets.filter((d) => {
-    const q = datasetSearch.toLowerCase();
-    return (
-      d.title.toLowerCase().includes(q) ||
-      d.parameter.toLowerCase().includes(q) ||
-      d.location.toLowerCase().includes(q) ||
-      (d.doi && d.doi.toLowerCase().includes(q))
-    );
-  });
+  // Media Save
+  const handleSaveMedia = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mediaForm.title || !mediaForm.url) return;
+    if (editingMediaId) {
+      polarDataService.updateMedia(editingMediaId, mediaForm);
+      showToast(`Media item "${mediaForm.title}" updated.`);
+    } else {
+      polarDataService.addMedia(mediaForm as ExpeditionMedia);
+      showToast(`Media visual "${mediaForm.title}" added to live public gallery.`);
+    }
+    setIsMediaModalOpen(false);
+    setEditingMediaId(null);
+  };
+
+  // Fact Save
+  const handleSaveFact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!factForm.statement || !factForm.explanation) return;
+    if (editingFactId) {
+      polarDataService.updateFact(editingFactId, factForm);
+      showToast(`Polar fact/myth updated.`);
+    } else {
+      polarDataService.addFact(factForm as PolarFact);
+      showToast(`New polar fact/myth published.`);
+    }
+    setIsFactModalOpen(false);
+    setEditingFactId(null);
+  };
+
+  // Moderation Resolution
+  const handleResolveReport = (
+    reportId: string,
+    action: 'MARK_SAFE' | 'REMOVE_CONTENT' | 'WARNING_ISSUED'
+  ) => {
+    polarDataService.resolveUserReport(reportId, action);
+    showToast(`Moderation ticket ${reportId} resolved with action: ${action}.`);
+  };
 
   // =========================================================================
-  // VIEW 1: AUTHENTICATION LOCK SCREEN (IF NOT LOGGED IN)
+  // VIEW 1: SECURE AUTHENTICATION SCREEN (IF NOT LOGGED IN)
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div id="admin-login-screen" className="max-w-xl mx-auto px-4 py-16 space-y-8">
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-cyan-950/90 border-2 border-cyan-500/60 shadow-xl shadow-cyan-950/60 mx-auto text-cyan-400">
-            <Lock className="w-8 h-8" />
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 border border-cyan-700/50 text-cyan-300">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>NCPOR Secure Editorial Gate</span>
-          </div>
-          <h1 className="text-3xl font-extrabold text-white font-['Outfit']">
-            Admin & Data Officer Portal
-          </h1>
-          <p className="text-slate-400 text-sm max-w-md mx-auto">
-            Authorized access for entering scientific datasets, editing observational parameters, and publishing peer-verified cryospheric research.
-          </p>
-        </div>
+      <div className="min-h-screen bg-[#030b17] text-white pt-24 pb-20 px-4 flex flex-col items-center justify-center">
+        <div className="w-full max-w-md space-y-6">
+          <TopLeftBackButton onBack={() => onNavigate('home')} currentView="admin" targetLabel="Home" />
 
-        {/* Access Key Notification Card */}
-        <div className="p-5 rounded-2xl bg-[#07172e] border border-cyan-500/40 shadow-xl space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Key className="w-4 h-4 text-cyan-300" />
-              <span>Official Admin Portal Access Key</span>
-            </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500">
-              Verified
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-xl bg-[#051122] border border-cyan-900/80 font-mono text-cyan-200 text-sm font-bold tracking-wider select-all">
-            <span>{MASTER_ADMIN_KEY}</span>
-            <button
-              onClick={handleUseOfficialKey}
-              className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1"
-            >
-              <Unlock className="w-3.5 h-3.5" />
-              <span>1-Click Unlock</span>
-            </button>
-          </div>
-          <p className="text-[11px] text-slate-400">
-            Click "1-Click Unlock" or paste the master key into the field below to access full CRUD capabilities for datasets and scientific publications.
-          </p>
-        </div>
-
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="p-6 rounded-2xl bg-[#08172c] border border-slate-800 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Enter Access Key
-            </label>
-            <div className="relative">
-              <Key className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
-              <input
-                type="text"
-                value={inputKey}
-                onChange={(e) => {
-                  setInputKey(e.target.value);
-                  setAuthError(null);
-                }}
-                placeholder="Enter key (e.g. POLAR-ADMIN-NCPOR-2026)"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#051122] border border-cyan-900 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:border-cyan-400"
-              />
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-cyan-950/90 border-2 border-cyan-500/60 shadow-xl shadow-cyan-950/60 text-cyan-400">
+              <Lock className="w-8 h-8" />
             </div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-['Outfit'] text-white">
+              NCPOR Admin Portal
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Secure Zero-Trust Editorial Gateway. Full CRUD database management, AI moderation queue, and cybersecurity monitoring.
+            </p>
           </div>
 
-          {authError && (
-            <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-              <span>{authError}</span>
-            </div>
-          )}
+          <div className="p-6 rounded-3xl bg-[#081528] border border-cyan-900/80 shadow-2xl space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                  <span>Enter Master Security Key</span>
+                  <span className="text-[10px] text-cyan-400 font-mono">Encrypted</span>
+                </label>
+                <div className="relative">
+                  <Key className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={inputKey}
+                    onChange={(e) => {
+                      setInputKey(e.target.value);
+                      setAuthError(null);
+                    }}
+                    placeholder="Enter confidential administrator key"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#040e1c] border border-cyan-900/80 focus:border-cyan-400 text-white placeholder-slate-500 text-xs focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label="Toggle password visibility"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-          <button
-            type="submit"
-            className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Authenticate into Admin Portal</span>
-          </button>
-        </form>
+              {authError && (
+                <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <div className="p-3 rounded-xl bg-[#040e1c] border border-cyan-950/80 flex items-start gap-2 text-[11px] text-slate-400">
+                <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <p>
+                  Keys are restricted to verified NCPOR Data Officers. All authentication sessions are logged. (Authorized default test keys include <code>POLAR#SECURE-ADMIN@2026</code> or <code>admin</code>).
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                id="authenticate-admin-btn"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Verify Credentials & Enter Console</span>
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     );
   }
@@ -390,702 +425,1413 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({ onNavigate }) 
   // VIEW 2: AUTHENTICATED ADMIN CONSOLE
   // =========================================================================
   return (
-    <div id="admin-portal-view" className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Toast Notification Banner */}
-      {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 px-4 py-3 rounded-2xl bg-[#061830] border border-cyan-400 shadow-2xl text-cyan-200 text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Admin Header with Operator Info & Logout */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-cyan-950/80 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 border border-cyan-700/50 text-cyan-300">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>NCPOR Editorial Console • Master Access Granted</span>
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/60">
-              Active Session
-            </span>
+    <div id="admin-portal-view" className="min-h-screen bg-[#030b17] text-white pt-24 pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1720px] mx-auto space-y-6">
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-[100] px-4 py-3 rounded-2xl bg-cyan-950 border border-cyan-400 text-cyan-200 text-xs font-semibold shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-2">
+            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+            <span>{toastMessage}</span>
           </div>
+        )}
 
-          <h1 className="text-3xl font-extrabold text-white font-['Outfit']">
-            Polar Data Repository & Research Editorial Portal
-          </h1>
-          <p className="text-slate-400 text-sm mt-1 max-w-3xl">
-            Live database management for entering verified scientific datasets, editing time-series parameters, publishing peer-reviewed research papers, and auditing community submissions.
-          </p>
-        </div>
+        {/* Top Left Back Button */}
+        <TopLeftBackButton onBack={() => onNavigate('home')} currentView="admin" targetLabel="Home" />
 
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => onNavigate('datasets')}
-            className="px-3.5 py-2 rounded-xl bg-[#071830] hover:bg-[#0c2750] border border-cyan-800 text-xs font-bold text-cyan-300 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <Database className="w-4 h-4 text-cyan-400" />
-            <span>View Public Datasets</span>
-          </button>
-          <button
-            onClick={() => onNavigate('reports')}
-            className="px-3.5 py-2 rounded-xl bg-[#071830] hover:bg-[#0c2750] border border-cyan-800 text-xs font-bold text-cyan-300 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <FileText className="w-4 h-4 text-cyan-400" />
-            <span>View Public Reports</span>
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-rose-950 border border-slate-700 hover:border-rose-600 text-xs font-bold text-slate-300 hover:text-rose-200 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Lock Console</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setActiveTab('datasets')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'datasets'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                : 'bg-[#08172c] text-slate-300 hover:bg-[#0d2547]'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            <span>Manage Datasets ({datasets.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'reports'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                : 'bg-[#08172c] text-slate-300 hover:bg-[#0d2547]'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>Research Publications ({reports.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('claims')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'claims'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                : 'bg-[#08172c] text-slate-300 hover:bg-[#0d2547]'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Scientific Claim Audits</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('studio')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'studio'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                : 'bg-[#08172c] text-slate-300 hover:bg-[#0d2547]'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>AI Synthesis Studio</span>
-          </button>
-        </div>
-
-        {/* Global Reset Option */}
-        <button
-          onClick={handleResetDatasetsToBaseline}
-          className="px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
-          title="Reset datasets and reports back to verified initial baseline"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Reset to NCPOR Baseline</span>
-        </button>
-      </div>
-
-      {/* =====================================================================
-          TAB 1: DATASETS MANAGEMENT (ENTER & EDIT DATASETS)
-      ===================================================================== */}
-      {activeTab === 'datasets' && (
-        <div className="space-y-6">
-          {/* Action Bar: Enter Dataset & Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[#061426] border border-cyan-900/60">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
-              <input
-                type="text"
-                value={datasetSearch}
-                onChange={(e) => setDatasetSearch(e.target.value)}
-                placeholder="Search datasets by title, parameter, DOI..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#091e38] border border-cyan-900 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-cyan-400"
-              />
+        {/* Console Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-[#081528] border border-cyan-500/30 shadow-2xl">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-950 border border-cyan-500/60 flex items-center justify-center text-cyan-400 shadow-md">
+              <ShieldCheck className="w-6 h-6" />
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                id="enter-new-dataset-btn"
-                onClick={handleOpenNewDatasetModal}
-                className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Enter New Dataset</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Datasets Table/Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredDatasets.map((d) => (
-              <div
-                key={d.id}
-                id={`admin-dataset-card-${d.id}`}
-                className="p-5 rounded-2xl bg-[#08172c] border border-cyan-900/60 hover:border-cyan-400/80 shadow-xl flex flex-col justify-between gap-4 transition-all"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800 font-mono">
-                      {d.id}
-                    </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-300 border border-slate-700">
-                      {d.format}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-bold text-white font-['Outfit'] line-clamp-2 leading-snug">
-                    {d.title}
-                  </h3>
-                  <p className="text-xs text-cyan-300 font-semibold mt-1 line-clamp-1">
-                    Parameter: {d.parameter}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
-                    {d.description}
-                  </p>
-                </div>
-
-                <div className="space-y-2 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Timeframe:</span>
-                    <span className="text-slate-200 font-medium">{d.timeframe}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Location:</span>
-                    <span className="text-slate-200 font-medium line-clamp-1 max-w-[180px]">
-                      {d.location}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">DOI:</span>
-                    <span className="text-cyan-400 font-mono">{d.doi || 'Pending DOI'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Data Points:</span>
-                    <span className="text-emerald-400 font-bold">{d.dataPoints?.length || 0} points</span>
-                  </div>
-                </div>
-
-                {/* Edit & Delete Actions */}
-                <div className="flex items-center justify-between border-t border-slate-800 pt-3">
-                  <button
-                    onClick={() => handleOpenEditDatasetModal(d)}
-                    className="px-3 py-1.5 rounded-lg bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>Edit Dataset</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteDataset(d.id, d.title)}
-                    className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredDatasets.length === 0 && (
-            <div className="p-12 text-center bg-[#08172c] border border-cyan-900/60 rounded-2xl text-slate-400 text-xs space-y-3">
-              <Database className="w-8 h-8 text-cyan-500 mx-auto opacity-60" />
-              <p>No datasets found matching your search query.</p>
-              <button
-                onClick={handleOpenNewDatasetModal}
-                className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Enter First Dataset</span>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* =====================================================================
-          TAB 2: RESEARCH PUBLICATIONS (ENTER & EDIT RESEARCH STORIES)
-      ===================================================================== */}
-      {activeTab === 'reports' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between p-5 rounded-2xl bg-[#061426] border border-cyan-900/60">
             <div>
-              <h2 className="text-base font-bold text-white font-['Outfit']">
-                Peer-Reviewed Research Publications
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Manage live research stories, DOI citations, and scientific evidence chains.
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-950 text-emerald-300 border border-emerald-500">
+                  Full CRUD Live
+                </span>
+                <span className="text-xs font-mono text-cyan-400">NCPOR Central Command</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-white mt-1">
+                Polar Scientific Editorial & Database Administration
+              </h1>
             </div>
+          </div>
 
+          {/* Quick Actions & Logout */}
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
-              onClick={handleOpenNewReportModal}
-              className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-cyan-500/20 cursor-pointer flex items-center gap-2"
+              onClick={() => {
+                setEditingReportId(null);
+                setIsReportModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-500/60 text-purple-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Enter New Research Paper</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Research Paper</span>
+            </button>
+            <button
+              onClick={() => {
+                setEditingDatasetId(null);
+                setIsDatasetModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/60 text-cyan-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Dataset</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-3.5 py-2 rounded-xl bg-rose-950/80 hover:bg-rose-900 border border-rose-500/60 text-rose-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
             </button>
           </div>
-
-          <div className="space-y-4">
-            {reports.map((r) => (
-              <div
-                key={r.id}
-                className="p-5 rounded-2xl bg-[#08172c] border border-cyan-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl"
-              >
-                <div className="space-y-1.5 max-w-3xl">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
-                      {r.researchArea}
-                    </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-300 border border-slate-700">
-                      {r.region}
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono">DOI: {r.doi}</span>
-                  </div>
-
-                  <h3 className="text-base font-bold text-white font-['Outfit']">{r.title}</h3>
-                  <p className="text-xs text-slate-400 line-clamp-2">{r.abstract}</p>
-                  <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-4">
-                    <span>Authors: {r.authors?.join(', ')}</span>
-                    <span>Date: {r.date}</span>
-                    <span>Live Views: {r.views || '0'}</span>
-                    <span>Comments: {r.comments || 0}</span>
-                    <span>Bookmarks: {r.citations || 0}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => handleOpenEditReportModal(r)}
-                    className="px-3.5 py-2 rounded-xl bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>Edit</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteReport(r.id, r.title)}
-                    className="px-3.5 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
-      )}
 
-      {/* =====================================================================
-          TAB 3: SCIENTIFIC CLAIM VERIFICATION AUDITS
-      ===================================================================== */}
-      {activeTab === 'claims' && (
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-[#061426] border border-cyan-900/60 text-xs text-slate-300">
-            Auditing submissions under ISO 19115 Cryosphere Metadata Standard and NCPOR Grounding Framework.
-          </div>
+        {/* Navigation Tabs Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-cyan-950">
+          {[
+            { id: 'overview', label: 'System Telemetry', icon: Cpu, count: undefined },
+            { id: 'datasets', label: 'Datasets (CRUD)', icon: Database, count: datasets.length },
+            { id: 'reports', label: 'Research Papers (CRUD)', icon: FileText, count: reports.length },
+            { id: 'expeditions', label: 'Polar Expeditions', icon: Compass, count: expeditions.length },
+            { id: 'media', label: 'Media & Visuals', icon: Camera, count: mediaItems.length },
+            { id: 'facts', label: 'Facts & Myths', icon: Lightbulb, count: facts.length },
+            {
+              id: 'moderation',
+              label: 'AI Moderation Queue',
+              icon: Flag,
+              count: userReports.filter((r) => r.status === 'PENDING_REVIEW').length,
+            },
+            { id: 'cyber', label: 'Cybersecurity Logs', icon: ShieldAlert, count: cyberLogs.length },
+            { id: 'users', label: 'User Passports', icon: Users, count: users.length },
+          ].map((t) => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id as AdminTab)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20'
+                    : 'bg-[#081528] text-slate-400 border border-slate-800 hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{t.label}</span>
+                {t.count !== undefined && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                      isActive ? 'bg-slate-950 text-cyan-300' : 'bg-slate-900 text-slate-400'
+                    }`}
+                  >
+                    {t.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-          <div className="p-6 rounded-2xl bg-[#08172c] border border-cyan-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-            <div className="space-y-1 max-w-xl">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700">
-                  AI Recommendation: VERIFIED
+        {/* ================================================================= */}
+        {/* TAB: OVERVIEW / TELEMETRY */}
+        {/* ================================================================= */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-[#081528] border border-cyan-950 space-y-1">
+                <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Live Datasets</span>
+                <span className="text-2xl font-bold font-mono text-cyan-300">{datasets.length}</span>
+                <span className="text-[10px] text-emerald-400 block">Verified NCPOR Repos</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#081528] border border-cyan-950 space-y-1">
+                <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Research Papers</span>
+                <span className="text-2xl font-bold font-mono text-purple-300">{reports.length}</span>
+                <span className="text-[10px] text-purple-400 block">Multi-Model AI Audited</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#081528] border border-cyan-950 space-y-1">
+                <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Flagged Reports</span>
+                <span className="text-2xl font-bold font-mono text-amber-300">{userReports.length}</span>
+                <span className="text-[10px] text-amber-400 block">
+                  {userReports.filter((r) => r.status === 'PENDING_REVIEW').length} Pending AI Review
                 </span>
-                <span className="text-xs text-slate-500 font-mono">Confidence: 94%</span>
               </div>
-              <h3 className="text-base font-bold text-white font-['Outfit']">
-                "Southern Ocean Antarctic Intermediate Water freshening rate reached -0.04 PSU/decade"
-              </h3>
-              <p className="text-xs text-slate-400">
-                Submitted by Dr. S. K. Roy (NIO Goa) • Grounded by CTD Transect 57.5°E
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => showToast('Claim approved and published to verification register.')}
-                className="px-4 py-2 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Verify & Publish</span>
-              </button>
-              <button
-                onClick={() => showToast('Claim rejected.')}
-                className="px-4 py-2 rounded-xl bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-500 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-              >
-                <XCircle className="w-4 h-4" />
-                <span>Reject</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          TAB 4: AI CONTENT STUDIO
-      ===================================================================== */}
-      {activeTab === 'studio' && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-[#08172c] border border-cyan-900/60 shadow-2xl space-y-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              <span>Polar AI Research Story Synthesizer</span>
-            </div>
-            <h2 className="text-xl font-bold text-white font-['Outfit']">
-              Synthesize Calibrated Expedition Telemetry into Public Scientific Stories
-            </h2>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#051122] border border-cyan-950 text-xs text-slate-300 leading-relaxed">
-            All AI generated stories are grounded against NCPOR raw datasets (NetCDF and CSV files) with zero hallucination protocols and strict citation tracking.
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          DATASET MODAL: ENTER OR EDIT DATASET
-      ===================================================================== */}
-      {isDatasetModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl my-8 p-6 rounded-3xl bg-[#06152a] border-2 border-cyan-500/80 shadow-2xl space-y-5 text-left">
-            <div className="flex items-center justify-between border-b border-cyan-900/60 pb-4">
-              <div className="flex items-center gap-2">
-                <Database className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-lg font-bold text-white font-['Outfit']">
-                  {editingDatasetId ? 'Edit Verified Dataset' : 'Enter New Verified Dataset'}
-                </h3>
+              <div className="p-4 rounded-2xl bg-[#081528] border border-cyan-950 space-y-1">
+                <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Cyber Incidents Blocked</span>
+                <span className="text-2xl font-bold font-mono text-rose-300">{cyberLogs.length}</span>
+                <span className="text-[10px] text-rose-400 block">Zero-Tolerance Active</span>
               </div>
-              <button
-                onClick={() => setIsDatasetModalOpen(false)}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
 
-            <form onSubmit={handleSaveDataset} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-300 uppercase tracking-wider">
-                  Dataset Title *
-                </label>
+            {/* AI Cross-Verification Consensus Info Card */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-[#07162b] to-[#041021] border border-cyan-500/30 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-cyan-950 border border-cyan-400/60 flex items-center justify-center text-cyan-300">
+                  <Sparkles className="w-5 h-5 text-cyan-300 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white font-['Outfit']">
+                    Multi-Model AI Consensus Engine (Gemini, Claude, GPT-4o, DeepSeek)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Every community field observation, media upload, and research paper is cross-audited across 4 global models against empirical NCPOR & Antarctic Treaty baseline physics.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+                <div className="p-3.5 rounded-2xl bg-[#030c18] border border-cyan-900/60 space-y-1">
+                  <span className="text-xs font-bold text-cyan-300 block">Google Gemini 2.5 Flash</span>
+                  <span className="text-[11px] text-slate-400 block">
+                    CryoGrounding check against IMD & NCPOR telemetry series.
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-[#030c18] border border-cyan-900/60 space-y-1">
+                  <span className="text-xs font-bold text-amber-300 block">Anthropic Claude 3.5 Sonnet</span>
+                  <span className="text-[11px] text-slate-400 block">
+                    Methodological rigor & peer-review anomaly detection.
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-[#030c18] border border-cyan-900/60 space-y-1">
+                  <span className="text-xs font-bold text-purple-300 block">OpenAI GPT-4o</span>
+                  <span className="text-[11px] text-slate-400 block">
+                    Polar literature citation lookup & taxonomic consistency.
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-[#030c18] border border-cyan-900/60 space-y-1">
+                  <span className="text-xs font-bold text-emerald-300 block">DeepSeek Reasoner</span>
+                  <span className="text-[11px] text-slate-400 block">
+                    Thermodynamic bounds & glaciological physics calculation.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: DATASETS CRUD */}
+        {/* ================================================================= */}
+        {activeTab === 'datasets' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
-                  required
-                  value={datasetForm.title || ''}
-                  onChange={(e) => setDatasetForm({ ...datasetForm, title: e.target.value })}
-                  placeholder="e.g. Maitri Station Decadal Surface Meteorology (1990–2025)"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search datasets by title or parameter..."
+                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#081528] border border-cyan-950 text-white text-xs focus:outline-none focus:border-cyan-400"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Parameter Measured *
-                  </label>
+              <button
+                onClick={() => {
+                  setEditingDatasetId(null);
+                  setDatasetForm({
+                    title: '',
+                    description: '',
+                    parameter: '',
+                    timeframe: '',
+                    location: '',
+                    coordinates: '',
+                    samplesCount: 12000,
+                    fileSize: '18 MB',
+                    format: 'CSV / NetCDF-4',
+                    institution: 'National Centre for Polar and Ocean Research (NCPOR)',
+                    doi: '10.5281/zenodo.',
+                    dataPoints: [
+                      { label: '2020', value: 12, unit: '' },
+                      { label: '2022', value: 18, unit: '' },
+                      { label: '2024', value: 25, unit: '' },
+                    ],
+                  });
+                  setIsDatasetModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Dataset</span>
+              </button>
+            </div>
+
+            <div className="rounded-2xl bg-[#081528] border border-cyan-950 overflow-hidden shadow-xl">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-cyan-950 bg-[#040e1c] text-slate-400">
+                    <th className="p-3.5 font-semibold">Title & Parameter</th>
+                    <th className="p-3.5 font-semibold">Location / Station</th>
+                    <th className="p-3.5 font-semibold">Timeframe</th>
+                    <th className="p-3.5 font-semibold">Format & Size</th>
+                    <th className="p-3.5 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-cyan-950/60">
+                  {datasets
+                    .filter((d) => d.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((d) => (
+                      <tr key={d.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-3.5">
+                          <div className="font-bold text-white">{d.title}</div>
+                          <div className="text-[11px] text-cyan-400">{d.parameter}</div>
+                        </td>
+                        <td className="p-3.5 text-slate-300">{d.location}</td>
+                        <td className="p-3.5 text-slate-400 font-mono text-[11px]">{d.timeframe}</td>
+                        <td className="p-3.5 text-slate-300 font-mono text-[11px]">
+                          {d.format} ({d.fileSize})
+                        </td>
+                        <td className="p-3.5 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingDatasetId(d.id);
+                              setDatasetForm(d);
+                              setIsDatasetModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-950/60 transition-colors"
+                            title="Edit Dataset"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete dataset "${d.title}"?`)) {
+                                polarDataService.deleteDataset(d.id);
+                                showToast(`Dataset "${d.title}" removed.`);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/60 transition-colors"
+                            title="Delete Dataset"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: RESEARCH PAPERS CRUD */}
+        {/* ================================================================= */}
+        {activeTab === 'reports' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search research papers..."
+                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#081528] border border-cyan-950 text-white text-xs focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  setEditingReportId(null);
+                  setReportForm({
+                    title: '',
+                    abstract: '',
+                    authors: ['NCPOR Research Fellow', 'Expedition Team'],
+                    institution: 'National Centre for Polar and Ocean Research (NCPOR)',
+                    date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+                    researchArea: 'Glaciology',
+                    region: 'Antarctica',
+                    expedition: '44th Indian Scientific Expedition to Antarctica',
+                    doi: '10.1016/j.polar.2026.01.002',
+                    imageUrl: 'https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=800&q=80',
+                    readTime: '5 min read',
+                    footerLinkType: 'expedition',
+                    footerLinkLabel: 'Expedition →',
+                  });
+                  setIsReportModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Publish New Research Paper</span>
+              </button>
+            </div>
+
+            <div className="rounded-2xl bg-[#081528] border border-cyan-950 overflow-hidden shadow-xl">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-cyan-950 bg-[#040e1c] text-slate-400">
+                    <th className="p-3.5 font-semibold">Title & Authors</th>
+                    <th className="p-3.5 font-semibold">Discipline & Region</th>
+                    <th className="p-3.5 font-semibold">Live Metrics</th>
+                    <th className="p-3.5 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-cyan-950/60">
+                  {reports
+                    .filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((r) => (
+                      <tr key={r.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-3.5 max-w-md">
+                          <div className="font-bold text-white line-clamp-1">{r.title}</div>
+                          <div className="text-[11px] text-slate-400 line-clamp-1">
+                            {r.authors.join(', ')} • {r.date}
+                          </div>
+                        </td>
+                        <td className="p-3.5">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                            {r.researchArea}
+                          </span>
+                          <span className="text-slate-400 text-[11px] ml-2">{r.region}</span>
+                        </td>
+                        <td className="p-3.5 font-mono text-[11px] text-slate-300">
+                          {r.views || '0'} views • {r.comments || 0} comments
+                        </td>
+                        <td className="p-3.5 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingReportId(r.id);
+                              setReportForm(r);
+                              setIsReportModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-950/60 transition-colors"
+                            title="Edit Research Report"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete research report "${r.title}"?`)) {
+                                polarDataService.deleteReport(r.id);
+                                showToast(`Research report removed.`);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/60 transition-colors"
+                            title="Delete Report"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: POLAR EXPEDITIONS CRUD */}
+        {/* ================================================================= */}
+        {activeTab === 'expeditions' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold text-white font-['Outfit']">
+                Indian Antarctic & Arctic Expeditions
+              </h3>
+              <button
+                onClick={() => {
+                  setEditingExpeditionId(null);
+                  setExpeditionForm({
+                    number: expeditions.length + 1,
+                    title: `${expeditions.length + 1}th Indian Scientific Expedition to Antarctica`,
+                    season: '2025–2026',
+                    vessel: 'Icebreaker Research Vessel',
+                    leader: 'Dr. Senior Scientist (NCPOR)',
+                    objectives: ['Southern Ocean CTD profiling', 'Ice-core drilling at Maitri'],
+                    keyFindings: ['Operational telemetry active.'],
+                    status: 'ACTIVE',
+                  });
+                  setIsExpeditionModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Expedition</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {expeditions.map((exp) => (
+                <div
+                  key={exp.id}
+                  className="p-5 rounded-2xl bg-[#081528] border border-cyan-950 space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                        Expedition #{exp.number}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          exp.status === 'ACTIVE'
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-700'
+                            : 'bg-slate-800 text-slate-300'
+                        }`}
+                      >
+                        {exp.status}
+                      </span>
+                    </div>
+
+                    <h4 className="text-sm font-bold text-white line-clamp-1">{exp.title}</h4>
+                    <p className="text-xs text-slate-400">
+                      <strong>Leader:</strong> {exp.leader} • <strong>Season:</strong> {exp.season}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      <strong>Vessel:</strong> {exp.vessel}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-cyan-950 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {exp.objectives?.length || 0} Objectives
+                    </span>
+                    <div className="space-x-1">
+                      <button
+                        onClick={() => {
+                          setEditingExpeditionId(exp.id);
+                          setExpeditionForm(exp);
+                          setIsExpeditionModalOpen(true);
+                        }}
+                        className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-950/60"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Delete expedition "${exp.title}"?`)) {
+                            polarDataService.deleteExpedition(exp.id);
+                            showToast(`Expedition removed.`);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/60"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: MEDIA & VISUALS CRUD */}
+        {/* ================================================================= */}
+        {activeTab === 'media' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold text-white font-['Outfit']">
+                Expedition Media Gallery & Visuals
+              </h3>
+              <button
+                onClick={() => {
+                  setEditingMediaId(null);
+                  setMediaForm({
+                    title: '',
+                    caption: '',
+                    type: 'photo',
+                    url: 'https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=1200&q=80',
+                    location: 'Maitri Station, Schirmacher Oasis',
+                    year: '2026',
+                    credit: 'NCPOR Editorial Field Archive',
+                  });
+                  setIsMediaModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Upload Media Item</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {mediaItems.map((m) => (
+                <div
+                  key={m.id}
+                  className="rounded-2xl bg-[#081528] border border-cyan-950 overflow-hidden flex flex-col justify-between"
+                >
+                  <div className="relative h-40 bg-slate-900 overflow-hidden">
+                    <img
+                      src={m.url}
+                      alt={m.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-950/80 text-cyan-300 border border-cyan-900">
+                      {m.type}
+                    </span>
+                  </div>
+                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-white line-clamp-1">{m.title}</h4>
+                      <p className="text-[11px] text-slate-400 line-clamp-2 mt-1">{m.caption}</p>
+                    </div>
+                    <div className="pt-2 border-t border-cyan-950 flex items-center justify-between text-[10px] text-slate-500">
+                      <span>{m.location}</span>
+                      <div className="space-x-1">
+                        <button
+                          onClick={() => {
+                            setEditingMediaId(m.id);
+                            setMediaForm(m);
+                            setIsMediaModalOpen(true);
+                          }}
+                          className="p-1 rounded text-cyan-400 hover:bg-cyan-950"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Delete media "${m.title}"?`)) {
+                              polarDataService.deleteMedia(m.id);
+                              showToast(`Media visual deleted.`);
+                            }
+                          }}
+                          className="p-1 rounded text-rose-400 hover:bg-rose-950"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: POLAR FACTS & MYTHS CRUD */}
+        {/* ================================================================= */}
+        {activeTab === 'facts' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold text-white font-['Outfit']">
+                Debunked Polar Myths & Facts
+              </h3>
+              <button
+                onClick={() => {
+                  setEditingFactId(null);
+                  setFactForm({
+                    statement: '',
+                    isFact: false,
+                    explanation: '',
+                    category: 'Wildlife',
+                    verifiedSource: 'NCPOR Wildlife Biology',
+                  });
+                  setIsFactModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Fact or Myth</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {facts.map((f) => (
+                <div
+                  key={f.id}
+                  className="p-4 rounded-2xl bg-[#081528] border border-cyan-950 flex flex-col sm:flex-row items-start justify-between gap-3"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          f.isFact
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-700'
+                            : 'bg-rose-950 text-rose-300 border border-rose-700'
+                        }`}
+                      >
+                        {f.isFact ? 'FACT' : 'MYTH DEBUNKED'}
+                      </span>
+                      <span className="text-[11px] font-mono text-cyan-400">{f.category}</span>
+                    </div>
+                    <h4 className="text-xs sm:text-sm font-bold text-white">"{f.statement}"</h4>
+                    <p className="text-xs text-slate-300 max-w-3xl">{f.explanation}</p>
+                    <div className="text-[10px] text-slate-500 font-mono">Source: {f.verifiedSource}</div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setEditingFactId(f.id);
+                        setFactForm(f);
+                        setIsFactModalOpen(true);
+                      }}
+                      className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-950"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Delete "${f.statement}"?`)) {
+                          polarDataService.deleteFact(f.id);
+                          showToast(`Item removed.`);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: USER REPORTS & AI MODERATION QUEUE */}
+        {/* ================================================================= */}
+        {activeTab === 'moderation' && (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white font-['Outfit']">
+                User Reports & AI Moderation Queue
+              </h3>
+              <p className="text-xs text-slate-400">
+                Whenever users report unusual activity or fabricated data, multi-model AI (Gemini, Claude, GPT-4o, DeepSeek) audits the claim and generates a verdict for admin decision.
+              </p>
+            </div>
+
+            {userReports.length === 0 ? (
+              <div className="p-12 text-center rounded-3xl bg-[#081528] border border-cyan-950 space-y-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                <h4 className="text-sm font-bold text-white">Moderation Queue Clean</h4>
+                <p className="text-xs text-slate-400">
+                  No active reports or flagged violations. The platform is operating securely.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {userReports.map((rep) => (
+                  <div
+                    key={rep.id}
+                    className="p-5 rounded-2xl bg-[#081528] border border-cyan-950 space-y-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-950 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-600">
+                            {rep.reason}
+                          </span>
+                          <span className="text-xs font-mono text-cyan-400">{rep.timestamp}</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white mt-1">
+                          Target: "{rep.targetTitle}" ({rep.targetType})
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          Reported by user <strong className="text-white font-mono">{rep.reportedByUsername}</strong>: "{rep.details}"
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                            rep.status === 'PENDING_REVIEW'
+                              ? 'bg-amber-950/80 text-amber-300 border border-amber-500'
+                              : 'bg-emerald-950 text-emerald-300 border border-emerald-500'
+                          }`}
+                        >
+                          {rep.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* AI Consensus Card */}
+                    {rep.aiAudit && (
+                      <div className="space-y-1.5">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Multi-Model AI Cross-Audit:
+                        </span>
+                        <AIVerificationCard summary={rep.aiAudit} compact />
+                      </div>
+                    )}
+
+                    {/* Admin Actions */}
+                    {rep.status === 'PENDING_REVIEW' && (
+                      <div className="flex items-center justify-end gap-2 pt-2">
+                        <button
+                          onClick={() => handleResolveReport(rep.id, 'MARK_SAFE')}
+                          className="px-4 py-2 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 text-xs font-bold cursor-pointer"
+                        >
+                          Mark Verified & Safe
+                        </button>
+                        <button
+                          onClick={() => handleResolveReport(rep.id, 'REMOVE_CONTENT')}
+                          className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-950 cursor-pointer"
+                        >
+                          Remove Content from Platform
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: CYBERSECURITY LOGS */}
+        {/* ================================================================= */}
+        {activeTab === 'cyber' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white font-['Outfit']">
+                  Cybersecurity Incident & Abuse Filter Logs
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Any uploads containing prohibited terms, abusive phrases, XSS, or SQL injection are automatically discarded and logged here.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-950 text-rose-300 border border-rose-600">
+                {cyberLogs.length} Blocked Incidents
+              </span>
+            </div>
+
+            {cyberLogs.length === 0 ? (
+              <div className="p-12 text-center rounded-3xl bg-[#081528] border border-cyan-950">
+                <ShieldCheck className="w-10 h-10 text-cyan-400 mx-auto mb-2" />
+                <h4 className="text-sm font-bold text-white">No Malicious Incidents Detected</h4>
+                <p className="text-xs text-slate-400">Cyber scanners are active and monitoring all submission payloads.</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-[#081528] border border-cyan-950 overflow-hidden shadow-xl">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-cyan-950 bg-[#040e1c] text-slate-400">
+                      <th className="p-3 font-semibold">User & Timestamp</th>
+                      <th className="p-3 font-semibold">Violation Reason</th>
+                      <th className="p-3 font-semibold">Severity</th>
+                      <th className="p-3 font-semibold">Blocked Payload Snippet</th>
+                      <th className="p-3 font-semibold">Action Taken</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-cyan-950/60">
+                    {cyberLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-slate-800/30">
+                        <td className="p-3">
+                          <div className="font-mono text-cyan-300 font-bold">{log.username}</div>
+                          <div className="text-[10px] text-slate-500">{log.timestamp}</div>
+                        </td>
+                        <td className="p-3 text-slate-300 font-semibold">{log.reason}</td>
+                        <td className="p-3">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              log.severity === 'CRITICAL'
+                                ? 'bg-rose-950 text-rose-300 border border-rose-500'
+                                : 'bg-amber-950 text-amber-300 border border-amber-500'
+                            }`}
+                          >
+                            {log.severity}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono text-[11px] text-rose-300/90 max-w-xs truncate">
+                          {log.blockedTextSnippet}
+                        </td>
+                        <td className="p-3 text-emerald-400 font-semibold">{log.actionTaken}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: REGISTERED USER PASSPORTS */}
+        {/* ================================================================= */}
+        {activeTab === 'users' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white font-['Outfit']">
+                  Registered Polar Passports & User Profiles
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Accounts created with special username keys, roles (student/teacher/researcher), and interest tags.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-950 text-cyan-300 border border-cyan-700">
+                {users.length} Registered Passports
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {users.map((u) => (
+                <div
+                  key={u.id}
+                  className="p-5 rounded-2xl bg-[#081528] border border-cyan-950 space-y-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={u.avatar}
+                      alt={u.name}
+                      referrerPolicy="no-referrer"
+                      className="w-10 h-10 rounded-full border border-cyan-500/40 object-cover"
+                    />
+                    <div>
+                      <h4 className="text-sm font-bold text-white">{u.name}</h4>
+                      <span className="text-xs font-mono text-cyan-400 block">{u.username}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-slate-300">
+                    <div>
+                      <strong className="text-slate-400">Role:</strong> {u.role}
+                    </div>
+                    <div>
+                      <strong className="text-slate-400">Purpose:</strong> {u.purpose}
+                    </div>
+                    <div>
+                      <strong className="text-slate-400">Joined:</strong> {u.joinedDate}
+                    </div>
+                  </div>
+
+                  {u.interests && u.interests.length > 0 && (
+                    <div className="pt-2 border-t border-cyan-950 flex flex-wrap gap-1">
+                      {u.interests.map((it, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded text-[10px] bg-[#040e1c] text-cyan-300 border border-cyan-900">
+                          {it}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-cyan-950 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">{u.savedItems?.length || 0} Saved Items</span>
+                    <span
+                      className={`font-bold ${
+                        u.securityStrikes > 0 ? 'text-rose-400' : 'text-emerald-400'
+                      }`}
+                    >
+                      {u.securityStrikes} Security Strikes
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* MODAL: DATASET ADD / EDIT */}
+        {/* ================================================================= */}
+        {isDatasetModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#081528] border border-cyan-500/40 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-cyan-950 pb-3">
+                <h3 className="text-lg font-bold text-white font-['Outfit']">
+                  {editingDatasetId ? 'Edit Dataset' : 'Publish New Scientific Dataset'}
+                </h3>
+                <button
+                  onClick={() => setIsDatasetModalOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveDataset} className="space-y-3.5">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Dataset Title *</label>
                   <input
                     type="text"
                     required
-                    value={datasetForm.parameter || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, parameter: e.target.value })}
-                    placeholder="e.g. Mean Air Temperature (°C) & Wind (kts)"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                    value={datasetForm.title || ''}
+                    onChange={(e) => setDatasetForm({ ...datasetForm, title: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Timeframe
-                  </label>
-                  <input
-                    type="text"
-                    value={datasetForm.timeframe || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, timeframe: e.target.value })}
-                    placeholder="e.g. 1990 – 2025"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Location / Research Station
-                  </label>
-                  <input
-                    type="text"
-                    value={datasetForm.location || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, location: e.target.value })}
-                    placeholder="e.g. Maitri Station, Schirmacher Oasis"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Parameter *</label>
+                    <input
+                      type="text"
+                      required
+                      value={datasetForm.parameter || ''}
+                      onChange={(e) => setDatasetForm({ ...datasetForm, parameter: e.target.value })}
+                      placeholder="e.g. Surface Temperature, Sea Ice Extent"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Location *</label>
+                    <input
+                      type="text"
+                      required
+                      value={datasetForm.location || ''}
+                      onChange={(e) => setDatasetForm({ ...datasetForm, location: e.target.value })}
+                      placeholder="e.g. Maitri Station, East Antarctica"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    GPS Coordinates
-                  </label>
-                  <input
-                    type="text"
-                    value={datasetForm.coordinates || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, coordinates: e.target.value })}
-                    placeholder="e.g. 70°45′58″S, 11°44′09″E"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Format
-                  </label>
-                  <input
-                    type="text"
-                    value={datasetForm.format || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, format: e.target.value })}
-                    placeholder="CSV / NetCDF-4"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Description *</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={datasetForm.description || ''}
+                    onChange={(e) => setDatasetForm({ ...datasetForm, description: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs resize-none"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    File Size
-                  </label>
-                  <input
-                    type="text"
-                    value={datasetForm.fileSize || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, fileSize: e.target.value })}
-                    placeholder="e.g. 45 MB"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Timeframe</label>
+                    <input
+                      type="text"
+                      value={datasetForm.timeframe || ''}
+                      onChange={(e) => setDatasetForm({ ...datasetForm, timeframe: e.target.value })}
+                      placeholder="1990–2025"
+                      className="w-full px-3 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Format</label>
+                    <input
+                      type="text"
+                      value={datasetForm.format || ''}
+                      onChange={(e) => setDatasetForm({ ...datasetForm, format: e.target.value })}
+                      placeholder="CSV / NetCDF-4"
+                      className="w-full px-3 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">File Size</label>
+                    <input
+                      type="text"
+                      value={datasetForm.fileSize || ''}
+                      onChange={(e) => setDatasetForm({ ...datasetForm, fileSize: e.target.value })}
+                      placeholder="25 MB"
+                      className="w-full px-3 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    DOI Identifier
-                  </label>
-                  <input
-                    type="text"
-                    value={datasetForm.doi || ''}
-                    onChange={(e) => setDatasetForm({ ...datasetForm, doi: e.target.value })}
-                    placeholder="10.5281/zenodo.7849102"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
-                  />
+                <div className="flex justify-end gap-2 pt-3 border-t border-cyan-950">
+                  <button
+                    type="button"
+                    onClick={() => setIsDatasetModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
+                  >
+                    Save Dataset
+                  </button>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-300 uppercase tracking-wider">
-                  Description & Methodology
-                </label>
-                <textarea
-                  rows={3}
-                  value={datasetForm.description || ''}
-                  onChange={(e) => setDatasetForm({ ...datasetForm, description: e.target.value })}
-                  placeholder="Comprehensive scientific methodology and calibration details..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 leading-relaxed"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsDatasetModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-md shadow-cyan-500/20 cursor-pointer flex items-center gap-1.5"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{editingDatasetId ? 'Save Dataset Changes' : 'Register Dataset'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          REPORT MODAL: ENTER OR EDIT RESEARCH PAPER
-      ===================================================================== */}
-      {isReportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl my-8 p-6 rounded-3xl bg-[#06152a] border-2 border-cyan-500/80 shadow-2xl space-y-5 text-left">
-            <div className="flex items-center justify-between border-b border-cyan-900/60 pb-4">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-lg font-bold text-white font-['Outfit']">
-                  {editingReportId ? 'Edit Research Publication' : 'Enter New Research Publication'}
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsReportModalOpen(false)}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              </form>
             </div>
-
-            <form onSubmit={handleSaveReport} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-300 uppercase tracking-wider">
-                  Paper Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={reportForm.title || ''}
-                  onChange={(e) => setReportForm({ ...reportForm, title: e.target.value })}
-                  placeholder="e.g. Accelerated Ice Shelf Basal Melting in the Indian Sector..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Research Area
-                  </label>
-                  <select
-                    value={reportForm.researchArea || 'Climate Science'}
-                    onChange={(e) => setReportForm({ ...reportForm, researchArea: e.target.value as any })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white focus:outline-none"
-                  >
-                    <option value="Climate Science">Climate Science</option>
-                    <option value="Marine Biology">Marine Biology</option>
-                    <option value="Ecology">Ecology</option>
-                    <option value="Earth Science">Earth Science</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Region
-                  </label>
-                  <select
-                    value={reportForm.region || 'Antarctica'}
-                    onChange={(e) => setReportForm({ ...reportForm, region: e.target.value as any })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white focus:outline-none"
-                  >
-                    <option value="Antarctica">Antarctica</option>
-                    <option value="Arctic">Arctic</option>
-                    <option value="Southern Ocean">Southern Ocean</option>
-                    <option value="Himalaya">Himalaya</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-300 uppercase tracking-wider">
-                  Authors (comma separated)
-                </label>
-                <input
-                  type="text"
-                  value={reportForm.authors?.join(', ') || ''}
-                  onChange={(e) =>
-                    setReportForm({
-                      ...reportForm,
-                      authors: e.target.value.split(',').map((s) => s.trim()),
-                    })
-                  }
-                  placeholder="Dr. Rajeshwari Nair, Prof. Vikram Sengupta"
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-300 uppercase tracking-wider">
-                  Abstract *
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  value={reportForm.abstract || ''}
-                  onChange={(e) => setReportForm({ ...reportForm, abstract: e.target.value })}
-                  placeholder="Scientific abstract and empirical findings..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 leading-relaxed"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    DOI Identifier
-                  </label>
-                  <input
-                    type="text"
-                    value={reportForm.doi || ''}
-                    onChange={(e) => setReportForm({ ...reportForm, doi: e.target.value })}
-                    placeholder="10.1016/j.polar.2025.03.112"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Expedition / Mission
-                  </label>
-                  <input
-                    type="text"
-                    value={reportForm.expedition || ''}
-                    onChange={(e) => setReportForm({ ...reportForm, expedition: e.target.value })}
-                    placeholder="43rd Indian Scientific Expedition to Antarctica"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#091f3a] border border-cyan-900 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsReportModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-md shadow-cyan-500/20 cursor-pointer flex items-center gap-1.5"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{editingReportId ? 'Save Publication Changes' : 'Publish Research'}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ================================================================= */}
+        {/* MODAL: REPORT ADD / EDIT */}
+        {/* ================================================================= */}
+        {isReportModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#081528] border border-cyan-500/40 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-cyan-950 pb-3">
+                <h3 className="text-lg font-bold text-white font-['Outfit']">
+                  {editingReportId ? 'Edit Research Paper' : 'Publish Research Paper'}
+                </h3>
+                <button
+                  onClick={() => setIsReportModalOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveReport} className="space-y-3.5">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Paper Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={reportForm.title || ''}
+                    onChange={(e) => setReportForm({ ...reportForm, title: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Research Area</label>
+                    <input
+                      type="text"
+                      value={reportForm.researchArea || ''}
+                      onChange={(e) => setReportForm({ ...reportForm, researchArea: e.target.value })}
+                      placeholder="e.g. Climate Science, Glaciology"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Region</label>
+                    <input
+                      type="text"
+                      value={reportForm.region || ''}
+                      onChange={(e) => setReportForm({ ...reportForm, region: e.target.value })}
+                      placeholder="Antarctica / Arctic"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Abstract *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={reportForm.abstract || ''}
+                    onChange={(e) => setReportForm({ ...reportForm, abstract: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Hero Image URL</label>
+                  <input
+                    type="url"
+                    value={reportForm.imageUrl || ''}
+                    onChange={(e) => setReportForm({ ...reportForm, imageUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                  <span>Saving will automatically execute multi-model AI consensus verification.</span>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-cyan-950">
+                  <button
+                    type="button"
+                    onClick={() => setIsReportModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs"
+                  >
+                    Save & AI Cross-Audit
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* MODAL: EXPEDITION ADD / EDIT */}
+        {/* ================================================================= */}
+        {isExpeditionModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-lg rounded-3xl bg-[#081528] border border-cyan-500/40 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-cyan-950 pb-3">
+                <h3 className="text-lg font-bold text-white font-['Outfit']">
+                  {editingExpeditionId ? 'Edit Expedition' : 'Register Polar Expedition'}
+                </h3>
+                <button
+                  onClick={() => setIsExpeditionModalOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveExpedition} className="space-y-3.5">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Expedition Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={expeditionForm.title || ''}
+                    onChange={(e) => setExpeditionForm({ ...expeditionForm, title: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Expedition Number</label>
+                    <input
+                      type="number"
+                      value={expeditionForm.number || 44}
+                      onChange={(e) => setExpeditionForm({ ...expeditionForm, number: Number(e.target.value) })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Season</label>
+                    <input
+                      type="text"
+                      value={expeditionForm.season || ''}
+                      onChange={(e) => setExpeditionForm({ ...expeditionForm, season: e.target.value })}
+                      placeholder="2024–2025"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Leader *</label>
+                    <input
+                      type="text"
+                      required
+                      value={expeditionForm.leader || ''}
+                      onChange={(e) => setExpeditionForm({ ...expeditionForm, leader: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Vessel</label>
+                    <input
+                      type="text"
+                      value={expeditionForm.vessel || ''}
+                      onChange={(e) => setExpeditionForm({ ...expeditionForm, vessel: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-cyan-950">
+                  <button
+                    type="button"
+                    onClick={() => setIsExpeditionModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
+                  >
+                    Save Expedition
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* MODAL: MEDIA ADD / EDIT */}
+        {/* ================================================================= */}
+        {isMediaModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-md rounded-3xl bg-[#081528] border border-cyan-500/40 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-cyan-950 pb-3">
+                <h3 className="text-lg font-bold text-white font-['Outfit']">
+                  {editingMediaId ? 'Edit Media Visual' : 'Upload Media Visual'}
+                </h3>
+                <button
+                  onClick={() => setIsMediaModalOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveMedia} className="space-y-3.5">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={mediaForm.title || ''}
+                    onChange={(e) => setMediaForm({ ...mediaForm, title: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Image / Video URL *</label>
+                  <input
+                    type="url"
+                    required
+                    value={mediaForm.url || ''}
+                    onChange={(e) => setMediaForm({ ...mediaForm, url: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Caption</label>
+                  <textarea
+                    rows={2}
+                    value={mediaForm.caption || ''}
+                    onChange={(e) => setMediaForm({ ...mediaForm, caption: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Location</label>
+                    <input
+                      type="text"
+                      value={mediaForm.location || ''}
+                      onChange={(e) => setMediaForm({ ...mediaForm, location: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Credit</label>
+                    <input
+                      type="text"
+                      value={mediaForm.credit || ''}
+                      onChange={(e) => setMediaForm({ ...mediaForm, credit: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-cyan-950">
+                  <button
+                    type="button"
+                    onClick={() => setIsMediaModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
+                  >
+                    Save Media
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* MODAL: FACT ADD / EDIT */}
+        {/* ================================================================= */}
+        {isFactModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-md rounded-3xl bg-[#081528] border border-cyan-500/40 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-cyan-950 pb-3">
+                <h3 className="text-lg font-bold text-white font-['Outfit']">
+                  {editingFactId ? 'Edit Fact / Myth' : 'Add Polar Fact / Myth'}
+                </h3>
+                <button
+                  onClick={() => setIsFactModalOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveFact} className="space-y-3.5">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Statement *</label>
+                  <input
+                    type="text"
+                    required
+                    value={factForm.statement || ''}
+                    onChange={(e) => setFactForm({ ...factForm, statement: e.target.value })}
+                    placeholder="e.g. Polar bears live in Antarctica."
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                  />
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="text-xs font-bold text-slate-300">Is this a Fact?</label>
+                  <div className="flex items-center gap-3 text-xs">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={factForm.isFact === true}
+                        onChange={() => setFactForm({ ...factForm, isFact: true })}
+                      />
+                      <span>Fact</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={factForm.isFact === false}
+                        onChange={() => setFactForm({ ...factForm, isFact: false })}
+                      />
+                      <span>Myth (To Debunk)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Scientific Explanation *</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={factForm.explanation || ''}
+                    onChange={(e) => setFactForm({ ...factForm, explanation: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Category</label>
+                    <input
+                      type="text"
+                      value={factForm.category || 'Climate'}
+                      onChange={(e) => setFactForm({ ...factForm, category: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-300 block mb-1">Verified Source</label>
+                    <input
+                      type="text"
+                      value={factForm.verifiedSource || ''}
+                      onChange={(e) => setFactForm({ ...factForm, verifiedSource: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#040e1c] border border-cyan-900 text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-cyan-950">
+                  <button
+                    type="button"
+                    onClick={() => setIsFactModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
+                  >
+                    Save Item
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -5,24 +5,27 @@ export type ViewMode =
   | 'report-detail'
   | 'expeditions'
   | 'expedition-detail'
-  | 'research'
-  | 'research-detail'
   | 'datasets'
   | 'dataset-detail'
-  | 'media'
-  | 'facts'
   | 'claims'
   | 'claim-detail'
+  | 'facts'
   | 'voices'
   | 'voices-create'
-  | 'scientists'
-  | 'scientist-detail'
   | 'learning'
   | 'learning-detail'
   | 'quiz'
   | 'ai'
+  | 'database'
+  | 'research'
+  | 'research-detail'
+  | 'timeline'
+  | 'game'
+  | 'scientists'
+  | 'media'
   | 'profile'
   | 'feed'
+  | 'saved'
   | 'admin';
 
 export type ClaimStatus = 'VERIFIED' | 'PARTIALLY_SUPPORTED' | 'UNVERIFIED' | 'CONTRADICTED';
@@ -48,17 +51,21 @@ export interface ResearchReport {
   authors: string[];
   institution: string;
   date: string;
-  views: string;
-  comments: number;
-  citations: number;
+  views?: string | number;
+  comments?: number;
+  citations?: number;
   expedition: string;
-  researchArea: 'Climate Science' | 'Marine Biology' | 'Ecology' | 'Earth Science' | 'Atmospheric Physics' | 'Glaciology';
-  region: 'Antarctica' | 'Arctic' | 'Southern Ocean' | 'Himalaya (Third Pole)';
+  researchArea: 'Climate Science' | 'Marine Biology' | 'Ecology' | 'Earth Science' | 'Atmospheric Physics' | 'Glaciology' | string;
+  region: 'Antarctica' | 'Arctic' | 'Southern Ocean' | 'Himalaya (Third Pole)' | string;
   imageUrl: string;
   readTime: string;
   doi: string;
   footerLinkType: 'expedition' | 'station' | 'dataset';
   footerLinkLabel: string;
+  publicationDate?: string;
+  journal?: string;
+  affiliation?: string;
+  aiVerification?: AIVerificationSummary;
   aiSummary: {
     overview: string;
     whyItMatters: string;
@@ -69,7 +76,7 @@ export interface ResearchReport {
     claim: string;
     evidence: string;
     source: string;
-    type: 'Satellite' | 'Ice Core' | 'CTD Profiler' | 'Field Census';
+    type: 'Satellite' | 'Ice Core' | 'CTD Profiler' | 'Field Census' | string;
   }[];
   alternativeViews?: {
     perspective: string;
@@ -118,66 +125,106 @@ export interface Dataset {
   dataPoints: {
     label: string;
     value: number;
+    uncertainty?: number;
     anomaly?: number;
     unit?: string;
   }[];
   relatedResearchId?: string;
+  relatedResearchIds?: string[];
   relatedExpeditionId?: string;
 }
 
 export interface ClaimVerification {
   id: string;
   claimText: string;
-  status: ClaimStatus;
+  status: ClaimStatus | string;
   explanation: string;
-  confidenceScore: number;
-  reviewer: string;
-  reviewDate: string;
-  supportingResearch: string[];
-  conflictingResearch: string[];
-  evidenceList: {
+  confidenceScore?: number;
+  reviewer?: string;
+  reviewDate?: string;
+  category: string;
+  supportingResearch?: string[];
+  conflictingResearch?: string[];
+  evidenceList?: {
     title: string;
     type: string;
     source: string;
     date: string;
     verified: boolean;
   }[];
-  scientificHistory: {
+  scientificHistory?: {
     year: string;
-    stage: string;
-    status: ClaimStatus;
-    notes: string;
+    event?: string;
+    stage?: string;
+    source?: string;
+    status?: string;
+    notes?: string;
   }[];
-  watchCount: number;
-  category: string;
+  watchCount?: number;
+}
+
+export interface PolarClaim {
+  id: string;
+  claim: string;
+  popularSource: string;
+  status: ClaimStatus;
+  verdictSummary: string;
+  consensusScore: number; // 0 - 100
+  evidenceChain: {
+    id: string;
+    type: 'Satellite Telemetry' | 'Ice Core' | 'Historical Log' | 'CTD Profiling';
+    observation: string;
+    source: string;
+    verifiedBy: string;
+  }[];
+  counterEvidence?: string[];
+  scientificConsensus: string;
+  lastUpdated: string;
+  watchedCount?: number;
+  isWatched?: boolean;
 }
 
 export interface PolarFact {
   id: string;
-  statement: string;
-  category: 'Freshwater' | 'Climate' | 'Ice' | 'Oceans' | 'Wildlife' | 'India & Polar Research';
-  source: string;
-  verified: boolean;
-  explanation: string;
-  relatedResearchId: string;
+  title?: string;
+  fact?: string;
+  statement?: string;
+  explanation?: string;
+  source?: string;
+  verified?: boolean;
+  relatedResearchId?: string;
   quizQuestionId?: string;
+  region?: 'Antarctica' | 'Arctic' | 'Himalayas';
+  category: string;
+  icon?: string;
+  verifiedSource?: string;
+  doiReference?: string;
+  aiVerification?: AIVerificationSummary;
 }
 
-export interface Scientist {
+export interface PolarScientist {
   id: string;
   name: string;
-  title: string;
+  title?: string;
+  designation?: string;
   institution: string;
-  verified: boolean;
-  avatar: string;
-  bio: string;
+  avatar?: string;
+  photoUrl?: string;
   specialization: string[];
-  expeditions: string[];
+  expeditions?: number | string[];
+  expeditionsCount?: number;
   publicationsCount: number;
   citationsCount: number;
-  followersCount: number;
+  hIndex?: number;
+  recentPaperTitle?: string;
+  recentPaperDoi?: string;
+  bio: string;
   isFollowing?: boolean;
+  followersCount?: number;
+  verified?: boolean;
 }
+
+export type Scientist = PolarScientist;
 
 export interface CommunityVoicePost {
   id: string;
@@ -198,6 +245,9 @@ export interface CommunityVoicePost {
   relatedExpedition?: string;
   evidenceWatchers?: number;
   isWatched?: boolean;
+  tags?: string[];
+  followers?: number;
+  aiVerification?: AIVerificationSummary;
 }
 
 export interface LearningModule {
@@ -251,4 +301,73 @@ export interface ExpeditionMedia {
   year: string;
   credit: string;
   expeditionId?: string;
+  likes?: number;
+  commentsCount?: number;
+  aiVerification?: AIVerificationSummary;
 }
+
+export type VerificationBatchStatus = 'VERIFIED' | 'PARTIALLY_VERIFIED' | 'UNVERIFIED';
+
+export interface AIModelAudit {
+  model: 'Google Gemini' | 'Anthropic Claude' | 'OpenAI GPT-4o' | 'DeepSeek Reasoner' | string;
+  status: VerificationBatchStatus;
+  confidenceScore: number;
+  reasoning: string;
+  citations: string[];
+}
+
+export interface AIVerificationSummary {
+  batchStatus: VerificationBatchStatus;
+  overallStatus?: VerificationBatchStatus; // alias
+  overallConfidence?: number;
+  consensusScore: number;
+  verifiedAt: string;
+  summary: string;
+  modelAudits: AIModelAudit[];
+  models?: Record<string, { status: VerificationBatchStatus; confidence: number; keyFinding: string }>;
+  safetyFlags?: string[];
+  auditedAt?: string;
+}
+
+export interface UserReportTicket {
+  id: string;
+  targetId: string;
+  targetType: 'research' | 'post' | 'media' | 'dataset' | 'expedition';
+  targetTitle: string;
+  reportedByUsername: string;
+  reason: string;
+  details: string;
+  timestamp: string;
+  status: 'PENDING_REVIEW' | 'VERIFIED_ACCURATE' | 'CONTENT_REMOVED' | 'WARNING_ISSUED';
+  aiAudit: AIVerificationSummary;
+  adminNotes?: string;
+}
+
+export interface CyberWarningLog {
+  id: string;
+  username: string;
+  reason: string;
+  severity: 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  blockedTextSnippet: string;
+  timestamp: string;
+  actionTaken: string;
+}
+
+export interface SavedItemRecord {
+  id: string;
+  itemId: string;
+  itemType: 'research' | 'post' | 'media' | 'dataset' | 'expedition';
+  title: string;
+  subtitle?: string;
+  imageUrl?: string;
+  dateSaved: string;
+  metadata?: Record<string, any>;
+  // Optional convenience fields for views
+  type?: 'research' | 'post' | 'media' | 'dataset' | 'expedition' | string;
+  author?: string;
+  category?: string;
+  thumbnail?: string;
+  date?: string;
+}
+
+export type SavedItem = SavedItemRecord;

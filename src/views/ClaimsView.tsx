@@ -39,7 +39,7 @@ export const ClaimsView: React.FC<ClaimsViewProps> = ({ onNavigate }) => {
     return matchStatus && matchSearch;
   });
 
-  const getStatusBadge = (status: ClaimStatus) => {
+  const getStatusBadge = (status: ClaimStatus | string) => {
     switch (status) {
       case 'VERIFIED':
         return (
@@ -63,6 +63,7 @@ export const ClaimsView: React.FC<ClaimsViewProps> = ({ onNavigate }) => {
           </span>
         );
       case 'UNVERIFIED':
+      default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-900 border border-slate-700 text-slate-300">
             <HelpCircle className="w-3.5 h-3.5" />
