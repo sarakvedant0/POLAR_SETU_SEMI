@@ -14,6 +14,10 @@ import {
   Thermometer,
   ShieldCheck,
   RotateCw,
+  Upload,
+  Image as ImageIcon,
+  Layers,
+  Box,
 } from 'lucide-react';
 import { ViewMode } from '../types';
 import { Holographic3DCube } from './3d/Holographic3DCube';
@@ -43,21 +47,19 @@ interface ExactNodeHotspot {
   summary: string;
 }
 
-// Strict node alignment and frame-safe coordinates (1633 x 963 px calibrated)
-// All cubes strictly vertically aligned with badges (badgeX === cubeX)
-// Scientists (dragged inside from 8.33% to 14.2%) and Media (dragged inside from 90.39% to 83.5%)
+// Calibrated 100% strictly to the uploaded bg3.png (1633 x 963 px)
 const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
   {
     id: 'research',
     name: 'Research & Publications',
     badgeLabel: 'Research & Publications',
     view: 'reports',
-    badgeX: 16.3,
-    badgeY: 20.0,
-    badgeW: 15.2,
-    badgeH: 5.4,
-    cubeX: 16.3,
-    cubeY: 27.2,
+    badgeX: 16.8,
+    badgeY: 18.9,
+    badgeW: 14.8,
+    badgeH: 4.8,
+    cubeX: 15.0,
+    cubeY: 26.2,
     cubeSize: 5.6,
     icon: FileText,
     color: '#38bdf8',
@@ -70,12 +72,12 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Polar Expeditions',
     badgeLabel: 'Expeditions',
     view: 'expeditions',
-    badgeX: 41.8,
-    badgeY: 19.6,
-    badgeW: 12.0,
-    badgeH: 5.2,
+    badgeX: 42.0,
+    badgeY: 19.8,
+    badgeW: 11.2,
+    badgeH: 4.8,
     cubeX: 41.8,
-    cubeY: 27.8,
+    cubeY: 27.2,
     cubeSize: 5.6,
     icon: Ship,
     color: '#38bdf8',
@@ -88,12 +90,12 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Scientific Datasets',
     badgeLabel: 'Datasets',
     view: 'datasets',
-    badgeX: 69.7,
-    badgeY: 26.1,
-    badgeW: 11.5,
-    badgeH: 5.4,
-    cubeX: 69.7,
-    cubeY: 33.0,
+    badgeX: 68.3,
+    badgeY: 24.5,
+    badgeW: 10.6,
+    badgeH: 4.8,
+    cubeX: 68.3,
+    cubeY: 31.8,
     cubeSize: 5.6,
     icon: Database,
     color: '#38bdf8',
@@ -106,12 +108,12 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Polar Scientists',
     badgeLabel: 'Scientists',
     view: 'scientists',
-    badgeX: 17.5, // Moved comfortably to the right from edge
-    badgeY: 45.0,
-    badgeW: 8.5,
+    badgeX: 12.2,
+    badgeY: 45.2,
+    badgeW: 10.0,
     badgeH: 4.8,
-    cubeX: 17.5, // Strictly vertically aligned
-    cubeY: 52.8,
+    cubeX: 12.2,
+    cubeY: 52.2,
     cubeSize: 5.6,
     icon: Users,
     color: '#38bdf8',
@@ -124,12 +126,12 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Ask Polar AI',
     badgeLabel: 'Polar AI',
     view: 'ai',
-    badgeX: 51.2,
+    badgeX: 51.3,
     badgeY: 43.7,
-    badgeW: 9.0,
+    badgeW: 10.5,
     badgeH: 4.8,
-    cubeX: 51.2, // Strictly vertically aligned
-    cubeY: 51.4,
+    cubeX: 51.3,
+    cubeY: 51.2,
     cubeSize: 5.8,
     icon: Sparkles,
     color: '#22d3ee',
@@ -142,12 +144,12 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Media & Visuals',
     badgeLabel: 'Media & Visuals',
     view: 'media',
-    badgeX: 83.5, // Dragged inside from 90.39% to prevent moving out of frame
-    badgeY: 37.2,
-    badgeW: 10.5,
+    badgeX: 89.6,
+    badgeY: 37.1,
+    badgeW: 11.2,
     badgeH: 4.8,
-    cubeX: 83.5, // Strictly vertically aligned
-    cubeY: 44.8,
+    cubeX: 89.6,
+    cubeY: 44.5,
     cubeSize: 5.6,
     icon: Camera,
     color: '#38bdf8',
@@ -160,15 +162,15 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Polar Evidence & Fact Check',
     badgeLabel: 'Evidence',
     view: 'claims',
-    badgeX: 32.9,
-    badgeY: 65.8,
-    badgeW: 9.0,
+    badgeX: 33.0,
+    badgeY: 65.6,
+    badgeW: 10.2,
     badgeH: 4.8,
-    cubeX: 32.9, // Strictly vertically aligned
-    cubeY: 73.2,
+    cubeX: 33.0,
+    cubeY: 72.8,
     cubeSize: 5.6,
     icon: ShieldCheck,
-    color: '#38bdf8',
+    color: '#34d399',
     category: 'Scientific Fact-Checking',
     stat: 'Peer-Reviewed Audits',
     summary: 'Evidence-based debunking of common misconceptions surrounding polar ice and melting.',
@@ -179,14 +181,14 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     badgeLabel: 'Learning Hub',
     view: 'learning',
     badgeX: 58.5,
-    badgeY: 75.5,
-    badgeW: 9.5,
+    badgeY: 74.6,
+    badgeW: 10.8,
     badgeH: 4.8,
-    cubeX: 58.5, // Strictly vertically aligned
-    cubeY: 83.2,
+    cubeX: 58.5,
+    cubeY: 82.0,
     cubeSize: 5.6,
     icon: GraduationCap,
-    color: '#38bdf8',
+    color: '#818cf8',
     category: 'Education & Quizzes',
     stat: 'Modules & Certifications',
     summary: 'Curricula for students, interactive polar survival simulations, and field science exams.',
@@ -196,12 +198,12 @@ const EXACT_HOTSPOTS: ExactNodeHotspot[] = [
     name: 'Polar Voices',
     badgeLabel: 'Polar Voices',
     view: 'voices',
-    badgeX: 81.5,
-    badgeY: 58.8,
-    badgeW: 9.5,
+    badgeX: 81.2,
+    badgeY: 58.5,
+    badgeW: 10.5,
     badgeH: 4.8,
-    cubeX: 81.5, // Strictly vertically aligned
-    cubeY: 66.5,
+    cubeX: 81.2,
+    cubeY: 65.8,
     cubeSize: 5.6,
     icon: Users,
     color: '#38bdf8',
@@ -217,17 +219,56 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
 }) => {
   const [activeHotspot, setActiveHotspot] = useState<ExactNodeHotspot | null>(null);
   const [searchInput, setSearchInput] = useState('');
-  const [imageSrc, setImageSrc] = useState<string>('/bg3.png');
+  const [imageSrc, setImageSrc] = useState<string>(() => {
+    try {
+      return localStorage.getItem('polar_hero_bg_data') || '/bg3.png';
+    } catch {
+      return '/bg3.png';
+    }
+  });
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [show3dCubes, setShow3dCubes] = useState(false);
   const [rotationSpeed, setRotationSpeed] = useState<number>(12); // seconds per 360 rotation
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [imgBox, setImgBox] = useState<{
     left: number;
     top: number;
     width: number;
     height: number;
   }>({ left: 0, top: 0, width: 0, height: 0 });
+
+  // Handle file drop / upload to strictly use bg3.png
+  const handleFileProcess = useCallback(async (file: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        setImageSrc(dataUrl);
+        setImageLoaded(true);
+        try {
+          localStorage.setItem('polar_hero_bg_data', dataUrl);
+        } catch {
+          // localStorage might be full for large images
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Also persist directly to server filesystem via Vite middleware
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      await fetch('/api/upload-bg', {
+        method: 'POST',
+        body: arrayBuffer,
+      });
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Compute exact rendered image dimensions for object-cover object-center
   const updateBounds = useCallback(() => {
@@ -277,7 +318,7 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
     };
   }, [updateBounds]);
 
-  // Check if user previously saved image to localStorage
+  // Check if user previously saved image to localStorage or /bg3.png
   useEffect(() => {
     try {
       const cached = localStorage.getItem('polar_hero_bg_data');
@@ -299,6 +340,19 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
 
   return (
     <div id="polar-exact-background-hero-section" className="w-full bg-[#030915] flex flex-col select-none">
+      {/* Hidden file input to select bg3.png */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            handleFileProcess(e.target.files[0]);
+          }
+        }}
+        className="hidden"
+      />
+
       {/* =========================================================
           1. DEDICATED PANORAMIC CANVAS (bg3.png + 9 NODES)
           Unobstructed viewport: Learning Hub is 100% visible & accessible
@@ -306,36 +360,83 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
       <div
         id="polar-exact-background-hero"
         ref={containerRef}
-        className="relative w-full h-[540px] sm:h-[620px] md:h-[700px] lg:h-[780px] xl:h-[840px] bg-[#030915] overflow-hidden flex flex-col justify-between"
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDraggingFile(true);
+        }}
+        onDragLeave={() => setIsDraggingFile(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDraggingFile(false);
+          if (e.dataTransfer.files?.[0]) {
+            handleFileProcess(e.dataTransfer.files[0]);
+          }
+        }}
+        className={`relative w-full h-[540px] sm:h-[620px] md:h-[700px] lg:h-[780px] xl:h-[840px] bg-[#030915] overflow-hidden flex flex-col justify-between transition-colors ${
+          isDraggingFile ? 'ring-4 ring-cyan-400/80 bg-cyan-950/40' : ''
+        }`}
       >
       {/* =========================================================
-          1. EXACT BACKGROUND IMAGE LAYER
+          1. EXACT BACKGROUND IMAGE LAYER (Strictly bg3.png)
       ========================================================= */}
       <div className="absolute inset-0 w-full h-full">
-        {/* The Exact Background image (bg3.png) */}
-        <img
-          ref={imgRef}
-          src={imageSrc}
-          alt="Antarctic Polar Science Landscape"
-          onLoad={() => {
-            setImageLoaded(true);
-            updateBounds();
-          }}
-          className="w-full h-full object-cover object-center pointer-events-none transition-opacity duration-700"
-          style={{
-            filter: 'contrast(1.04) saturate(1.03)',
-          }}
-        />
-
-        {/* Ambient atmospheric backdrop if image is loading */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-b from-[#020b18] via-[#051a36] to-[#010814]" />
+        {imageSrc && (
+          <img
+            ref={imgRef}
+            src={imageSrc}
+            alt="Antarctic Polar Science Landscape bg3.png"
+            onError={() => {
+              setImageLoaded(false);
+              updateBounds();
+            }}
+            onLoad={() => {
+              setImageLoaded(true);
+              updateBounds();
+            }}
+            className={`w-full h-full object-cover object-center pointer-events-none transition-opacity duration-700 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              filter: 'contrast(1.02) saturate(1.02)',
+            }}
+          />
         )}
 
         {/* Subtle Vignette and Cinematic Tone Mapping */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#030814] via-transparent to-black/20 pointer-events-none" />
         <div className="absolute inset-0 bg-radial from-transparent via-transparent to-[#020713]/40 pointer-events-none" />
       </div>
+
+      {/* Fallback Upload & Drop Prompt if bg3.png hasn't loaded yet */}
+      {!imageLoaded && (
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center cursor-pointer bg-[#030915]/95"
+        >
+          <div className="max-w-md p-8 rounded-3xl bg-[#06152d]/90 border border-cyan-800/60 shadow-2xl backdrop-blur-xl flex flex-col items-center">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-300 mb-4 shadow-lg shadow-cyan-950">
+              <Upload className="w-8 h-8 animate-bounce text-cyan-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white font-['Outfit']">
+              Strictly Using Background Image (bg3.png)
+            </h3>
+            <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+              Seeking <code className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 font-mono">/bg3.png</code>. If not automatically loaded, drag and drop <span className="text-cyan-200 font-semibold">bg3.png</span> here or click below to select it.
+            </p>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+              className="mt-5 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-lg shadow-cyan-500/25 flex items-center gap-2 cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Select bg3.png</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================
           2. TOP BAR & HUD OVERLAY
@@ -349,11 +450,35 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
           <span className="hidden sm:inline text-slate-300 font-mono">70°45'57"S, 11°44'09"E</span>
         </div>
 
-        {/* Right: Station Status Indicator */}
+        {/* Right: Controls & Station Status */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#051329]/80 backdrop-blur-md border border-cyan-800/60 text-[11px] text-cyan-300 shadow-md">
+          {/* Upload / Replace Button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#051329]/80 hover:bg-[#082042] border border-cyan-700/50 text-[11px] text-cyan-200 transition-all cursor-pointer shadow-md"
+            title="Upload or replace bg3.png"
+          >
+            <Upload className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="font-semibold">{imageLoaded ? 'bg3.png Active' : 'Select bg3.png'}</span>
+          </button>
+
+          {/* 3D Cubes Overlay Toggle */}
+          <button
+            onClick={() => setShow3dCubes(!show3dCubes)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] transition-all cursor-pointer shadow-md ${
+              show3dCubes
+                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
+                : 'bg-[#051329]/80 hover:bg-[#082042] border-cyan-800/60 text-slate-300'
+            }`}
+            title="Toggle live rotating Three.js 3D cubes overlay"
+          >
+            <Box className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="font-semibold">{show3dCubes ? '3D Cubes: On' : '3D Cubes: Off'}</span>
+          </button>
+
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#051329]/80 backdrop-blur-md border border-cyan-800/60 text-[11px] text-cyan-300 shadow-md">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span className="font-semibold">NCPOR Polar Network Active</span>
+            <span className="font-semibold">NCPOR Network Active</span>
           </div>
         </div>
       </div>
@@ -371,177 +496,14 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
             height: `${imgBox.height}px`,
           }}
         >
-          {/* Concealment patches to completely remove old baked-in duplicate boxes and badges behind Scientists and Media */}
-          {/* 1. Remove old Scientists Cube Box at (12.19%, 52.54%) */}
-          <div
-            id="conceal-old-scientists-cube-box"
-            className="absolute pointer-events-none z-20 rounded-full"
-            style={{
-              left: '12.19%',
-              top: '52.54%',
-              transform: 'translate(-50%, -50%)',
-              width: `${Math.max(68, Math.round((8.8 * imgBox.width) / 100))}px`,
-              height: `${Math.max(68, Math.round((10.2 * imgBox.height) / 100))}px`,
-              background: 'radial-gradient(ellipse at center, #051934 0%, #04142b 50%, #030e20 75%, rgba(3, 14, 32, 0) 100%)',
-              boxShadow: '0 0 28px rgba(4, 20, 43, 0.98)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-            }}
-          >
-            {/* Core opaque disc to completely erase the glowing icon and cube wireframe */}
-            <div
-              className="absolute inset-2 rounded-full"
-              style={{
-                backgroundColor: '#04142b',
-                opacity: 0.98,
-                filter: 'blur(5px)',
-              }}
-            />
-          </div>
-
-          {/* 2. Remove old Scientists Badge at (8.33%, 45.07%) */}
-          <div
-            id="conceal-old-scientists-spot"
-            className="absolute pointer-events-none z-20 rounded-full"
-            style={{
-              left: '8.33%',
-              top: '45.07%',
-              transform: 'translate(-50%, -50%)',
-              width: `${Math.round((8.5 * imgBox.width) / 100) + 20}px`,
-              height: `${Math.round((4.8 * imgBox.height) / 100) + 14}px`,
-              background: 'radial-gradient(ellipse at center, #06172e 0%, #04142a 60%, rgba(4, 20, 42, 0) 100%)',
-              boxShadow: '0 0 20px rgba(4, 20, 42, 0.98)',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-            }}
-          >
-            <div
-              className="absolute inset-1 rounded-full"
-              style={{
-                backgroundColor: '#04142a',
-                opacity: 0.98,
-                filter: 'blur(3px)',
-              }}
-            />
-          </div>
-
-          {/* 3. Remove old Media & Visuals Cube Box at (88.85%, 45.17%) */}
-          <div
-            id="conceal-old-media-cube-box"
-            className="absolute pointer-events-none z-20 rounded-full"
-            style={{
-              left: '88.85%',
-              top: '45.17%',
-              transform: 'translate(-50%, -50%)',
-              width: `${Math.max(68, Math.round((8.8 * imgBox.width) / 100))}px`,
-              height: `${Math.max(68, Math.round((10.2 * imgBox.height) / 100))}px`,
-              background: 'radial-gradient(ellipse at center, #061c39 0%, #051732 50%, #031024 75%, rgba(3, 16, 36, 0) 100%)',
-              boxShadow: '0 0 28px rgba(5, 23, 50, 0.98)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-            }}
-          >
-            {/* Core opaque disc to completely erase the glowing icon and cube wireframe */}
-            <div
-              className="absolute inset-2 rounded-full"
-              style={{
-                backgroundColor: '#051833',
-                opacity: 0.98,
-                filter: 'blur(5px)',
-              }}
-            />
-          </div>
-
-          {/* 4. Remove old Media & Visuals Badge at (90.39%, 37.18%) */}
-          <div
-            id="conceal-old-media-spot"
-            className="absolute pointer-events-none z-20 rounded-full"
-            style={{
-              left: '90.39%',
-              top: '37.18%',
-              transform: 'translate(-50%, -50%)',
-              width: `${Math.round((10.5 * imgBox.width) / 100) + 20}px`,
-              height: `${Math.round((4.8 * imgBox.height) / 100) + 14}px`,
-              background: 'radial-gradient(ellipse at center, #071933 0%, #05162e 60%, rgba(5, 22, 46, 0) 100%)',
-              boxShadow: '0 0 20px rgba(5, 22, 46, 0.98)',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-            }}
-          >
-            <div
-              className="absolute inset-1 rounded-full"
-              style={{
-                backgroundColor: '#051730',
-                opacity: 0.98,
-                filter: 'blur(3px)',
-              }}
-            />
-          </div>
-
-          {/* 5. Complete eradication of background Research badge graphic */}
-          <div
-            id="conceal-old-research-spot"
-            className="absolute pointer-events-none z-20 rounded-full"
-            style={{
-              left: '16.3%',
-              top: '20.0%',
-              transform: 'translate(-50%, -50%)',
-              width: `${Math.max(225, Math.round((15.5 * imgBox.width) / 100))}px`,
-              height: `${Math.max(50, Math.round((5.6 * imgBox.height) / 100))}px`,
-              backgroundColor: '#030e1f',
-              boxShadow: '0 0 16px rgba(3, 14, 31, 0.98)',
-              opacity: 0.98,
-            }}
-          />
-
-          {/* 6. Complete eradication of background Datasets badge graphic */}
-          <div
-            id="conceal-old-datasets-spot"
-            className="absolute pointer-events-none z-20 rounded-full"
-            style={{
-              left: '69.7%',
-              top: '26.1%',
-              transform: 'translate(-50%, -50%)',
-              width: `${Math.max(165, Math.round((12.0 * imgBox.width) / 100))}px`,
-              height: `${Math.max(52, Math.round((5.8 * imgBox.height) / 100))}px`,
-              backgroundColor: '#030e1f',
-              boxShadow: '0 0 16px rgba(3, 14, 31, 0.98)',
-              opacity: 0.98,
-            }}
-          />
-
           {EXACT_HOTSPOTS.map((hotspot) => {
             const isHovered = activeHotspot?.id === hotspot.id;
             const Icon = hotspot.icon;
-            const boxSizePx = Math.max(50, Math.round((hotspot.cubeSize / 100) * imgBox.width));
+            const boxSizePx = Math.max(48, Math.round((hotspot.cubeSize / 100) * imgBox.width));
 
             return (
               <React.Fragment key={hotspot.id}>
-                {/* Visual Connector Line between Main Topic Badge and 3D Cube (Strictly Vertical Beam) */}
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none z-20"
-                  style={{ overflow: 'visible' }}
-                >
-                  <line
-                    x1={`${hotspot.badgeX}%`}
-                    y1={`${hotspot.badgeY + 2.2}%`}
-                    x2={`${hotspot.cubeX}%`}
-                    y2={`${hotspot.cubeY - 2.8}%`}
-                    stroke={
-                      hotspot.id === 'claims'
-                        ? isHovered
-                          ? '#34d399'
-                          : 'rgba(52, 211, 153, 0.55)'
-                        : isHovered
-                        ? '#22d3ee'
-                        : 'rgba(56, 189, 248, 0.55)'
-                    }
-                    strokeWidth={isHovered ? 2 : 1.5}
-                    strokeDasharray={isHovered ? 'none' : '3 3'}
-                  />
-                </svg>
-
-                {/* 1. THE MAIN TOPIC BADGE - Positioned with 100% opaque coverage eliminating any background duplicates */}
+                {/* 1. THE MAIN TOPIC BADGE HITBOX - Calibrated exactly over bg3.png badge */}
                 <div
                   id={`hotspot-badge-${hotspot.id}`}
                   onClick={() => onNavigate(hotspot.view)}
@@ -551,72 +513,24 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
                     left: `${hotspot.badgeX}%`,
                     top: `${hotspot.badgeY}%`,
                     transform: 'translate(-50%, -50%)',
-                    minWidth: `${Math.max(
-                      hotspot.id === 'research' ? 220 : 130,
-                      Math.round((hotspot.badgeW * imgBox.width) / 100) + 16
-                    )}px`,
-                    minHeight: `${Math.max(46, Math.round((hotspot.badgeH * imgBox.height) / 100) + 10)}px`,
+                    width: `${Math.max(120, Math.round((hotspot.badgeW * imgBox.width) / 100))}px`,
+                    height: `${Math.max(36, Math.round((hotspot.badgeH * imgBox.height) / 100))}px`,
                   }}
                   className="absolute z-40 flex items-center justify-center cursor-pointer pointer-events-auto select-none group"
-                  title={`Open ${hotspot.name}`}
+                  title={`Explore ${hotspot.name}`}
                 >
-                  {/* Opaque Concealment Backing Shield - strictly eliminates any background duplicate edges, halos, or ghost text */}
                   <div
-                    className="absolute -inset-2 rounded-full pointer-events-none"
-                    style={{
-                      backgroundColor:
-                        hotspot.id === 'claims'
-                          ? '#041814'
-                          : hotspot.id === 'ai'
-                          ? '#04162e'
-                          : '#030e1f',
-                      boxShadow: '0 0 16px rgba(3, 14, 31, 0.98)',
-                      zIndex: -1,
-                    }}
-                  />
-
-                  <div
-                    className={`w-full h-full flex items-center justify-between gap-2 px-4 py-2 rounded-full transition-all duration-200 shadow-xl ${
+                    className={`w-full h-full rounded-full transition-all duration-200 flex items-center justify-between px-3 ${
                       isHovered
-                        ? 'scale-105 ring-2 ring-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.95)]'
-                        : 'shadow-lg group-hover:scale-102'
+                        ? 'ring-2 ring-cyan-300 bg-cyan-950/40 backdrop-blur-xs shadow-[0_0_24px_rgba(34,211,238,0.9)] scale-105'
+                        : 'hover:ring-1 hover:ring-cyan-400/50'
                     }`}
-                    style={{
-                      backgroundColor:
-                        hotspot.id === 'claims'
-                          ? '#051f1a'
-                          : hotspot.id === 'ai'
-                          ? '#051a36'
-                          : '#051326',
-                      border: `1.5px solid ${
-                        hotspot.id === 'claims'
-                          ? '#34d399'
-                          : hotspot.id === 'ai'
-                          ? '#22d3ee'
-                          : isHovered
-                          ? '#38bdf8'
-                          : 'rgba(56, 189, 248, 0.75)'
-                      }`,
-                      boxShadow: isHovered
-                        ? `0 0 22px ${
-                            hotspot.id === 'claims'
-                              ? '#34d399'
-                              : hotspot.id === 'ai'
-                              ? '#22d3ee'
-                              : hotspot.color
-                          }`
-                        : `0 0 12px ${
-                            hotspot.id === 'claims'
-                              ? '#34d39955'
-                              : hotspot.id === 'ai'
-                              ? '#22d3ee55'
-                              : 'rgba(56,189,248,0.3)'
-                          }`,
-                    }}
                   >
-                    {/* Glowing Live Status Beacon */}
+                    {/* Subtle pulsing status beacon */}
                     <span
-                      className="w-2 h-2 rounded-full shrink-0 animate-ping"
+                      className={`w-2.5 h-2.5 rounded-full shrink-0 transition-transform ${
+                        isHovered ? 'scale-125' : 'opacity-85 animate-pulse'
+                      }`}
                       style={{
                         backgroundColor:
                           hotspot.id === 'claims'
@@ -624,53 +538,14 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
                             : hotspot.id === 'ai'
                             ? '#22d3ee'
                             : '#38bdf8',
+                        boxShadow: `0 0 10px ${hotspot.color}`,
                       }}
                     />
-
-                    {/* Topic Icon */}
-                    <Icon
-                      className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
-                        hotspot.id === 'claims'
-                          ? 'text-emerald-300'
-                          : hotspot.id === 'ai'
-                          ? 'text-cyan-300 animate-pulse'
-                          : 'text-sky-300'
-                      }`}
-                    />
-
-                    {/* Main Topic Name */}
-                    <span
-                      className={`text-xs font-black tracking-wider uppercase font-['Outfit'] whitespace-nowrap drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] ${
-                        hotspot.id === 'claims'
-                          ? 'text-emerald-200'
-                          : hotspot.id === 'ai'
-                          ? 'text-cyan-100'
-                          : 'text-white'
-                      }`}
-                    >
-                      {hotspot.badgeLabel}
-                    </span>
-
-                    {/* Special Neon Tags for Key Pages */}
-                    {hotspot.id === 'claims' && (
-                      <span className="px-1.5 py-0.2 rounded-full bg-emerald-400 text-slate-950 text-[9px] font-black font-mono tracking-tight shadow-sm">
-                        FACTS
-                      </span>
-                    )}
-                    {hotspot.id === 'ai' && (
-                      <span className="px-1.5 py-0.2 rounded-full bg-cyan-400 text-slate-950 text-[9px] font-black font-mono tracking-tight shadow-sm">
-                        AI
-                      </span>
-                    )}
-
-                    {/* Arrow */}
-                    <span className="text-xs text-cyan-400 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
-                      →
-                    </span>
+                    <span className="sr-only">{hotspot.badgeLabel}</span>
                   </div>
                 </div>
 
-                {/* 2. 3D ROTATING HOLOGRAPHIC CUBE - Centered at its original measured coordinate */}
+                {/* 2. 3D CUBE HITBOX / OPTIONAL LIVE 3D CUBE */}
                 <div
                   id={`hotspot-cube-${hotspot.id}`}
                   onClick={() => onNavigate(hotspot.view)}
@@ -680,22 +555,38 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
                     left: `${hotspot.cubeX}%`,
                     top: `${hotspot.cubeY}%`,
                     transform: 'translate(-50%, -50%)',
+                    width: `${boxSizePx}px`,
+                    height: `${boxSizePx}px`,
                   }}
-                  className="absolute z-30 flex items-center justify-center cursor-pointer pointer-events-auto select-none"
-                  title={`Open ${hotspot.name} (${hotspot.badgeLabel})`}
+                  className="absolute z-30 flex items-center justify-center cursor-pointer pointer-events-auto select-none group"
+                  title={`Explore ${hotspot.name}`}
                 >
-                  <Holographic3DCube
-                    icon={Icon}
-                    size={boxSizePx}
-                    label={hotspot.name}
-                    category={hotspot.category}
-                    color={hotspot.color}
-                    isHovered={isHovered}
-                    autoRotateSpeed={rotationSpeed}
-                    enableDrag={true}
-                    onClick={() => onNavigate(hotspot.view)}
-                    onHoverChange={(hovered) => setActiveHotspot(hovered ? hotspot : null)}
-                  />
+                  {show3dCubes ? (
+                    <Holographic3DCube
+                      icon={Icon}
+                      size={boxSizePx}
+                      label={hotspot.name}
+                      category={hotspot.category}
+                      color={hotspot.color}
+                      isHovered={isHovered}
+                      autoRotateSpeed={rotationSpeed}
+                      enableDrag={true}
+                      onClick={() => onNavigate(hotspot.view)}
+                      onHoverChange={(hovered) => setActiveHotspot(hovered ? hotspot : null)}
+                    />
+                  ) : (
+                    <div
+                      className={`w-full h-full rounded-2xl transition-all duration-200 flex items-center justify-center ${
+                        isHovered
+                          ? 'ring-2 ring-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.85)] scale-108'
+                          : 'hover:ring-1 hover:ring-cyan-400/40'
+                      }`}
+                    >
+                      {isHovered && (
+                        <div className="absolute inset-0 rounded-2xl bg-cyan-400/15 animate-pulse pointer-events-none" />
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 3. Floating HUD Inspection Tooltip on Hover */}

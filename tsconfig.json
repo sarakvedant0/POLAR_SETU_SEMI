@@ -22,5 +22,29 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/types.ts",
+    "src/lib/polar-data.ts",
+    "src/components/Navbar.tsx",
+    "src/components/Footer.tsx",
+    "src/components/HomeSections.tsx",
+    "src/components/PolarExactBackgroundHero.tsx",
+    "src/components/PolarPanoramicLandscape.tsx",
+    "src/components/3d/**/*",
+    "src/components/views/**/*",
+    "src/components/modals/**/*",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/components/ui",
+    "src/routes",
+    "src/router.tsx",
+    "src/server.ts",
+    "src/start.ts"
+  ]
 }

@@ -3,6 +3,10 @@
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #030814;
+    background-image: radial-gradient(ellipse 100% 60% at 50% 0%, #061833 0%, #030917 50%, #02060f 100%);
+    background-attachment: fixed;
+    color: #f1f5f9;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
