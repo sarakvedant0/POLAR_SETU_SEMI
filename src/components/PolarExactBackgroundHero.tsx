@@ -234,18 +234,14 @@ export const PolarExactBackgroundHero: React.FC<PolarExactBackgroundHeroProps> =
     }
   });
   const [imageLoaded, setImageLoaded] = useState(false);
-<<<<<<< HEAD
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [show3dCubes] = useState(true);
   const [rotationSpeed, setRotationSpeed] = useState<number>(12); // seconds per 360 rotation
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-=======
   const [selectedRegionIndex, setSelectedRegionIndex] = useState(2);
-  const containerRef = useRef<HTMLDivElement>(null);
   const selectedRegion = POLAR_REGION_TEMPERATURES[selectedRegionIndex];
->>>>>>> 14abb3b (Update polar homepage styling and navigation)
   const [imgBox, setImgBox] = useState<{
     left: number;
     top: number;

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { HeroOverlay } from './components/HeroOverlay';
 import { HomeSections } from './components/HomeSections';
@@ -47,7 +46,6 @@ interface NavHistoryEntry {
 
 export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
-  const [viewHistory, setViewHistory] = useState<ViewMode[]>(['home']);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [navHistory, setNavHistory] = useState<NavHistoryEntry[]>([]);
 
@@ -87,20 +85,11 @@ export function App() {
       polarDataService.incrementReportViews(id);
     }
 
-    setViewHistory((prev) => {
-      const previous = prev[prev.length - 1];
-      if (previous === view) {
-        return prev;
-      }
-      return [...prev, view];
-    });
-
     setCurrentView(view);
     setSelectedId(id);
   };
 
   const handleBack = () => {
-<<<<<<< HEAD
     if (navHistory.length > 0) {
       const last = navHistory[navHistory.length - 1];
       setNavHistory((prev) => prev.slice(0, -1));
@@ -138,22 +127,6 @@ export function App() {
       return `Back to ${map[prev] || 'Previous'}`;
     }
     return 'Back to Home';
-=======
-    setViewHistory((prev) => {
-      if (prev.length <= 1) {
-        setCurrentView('home');
-        setSelectedId(undefined);
-        return ['home'];
-      }
-
-      const next = [...prev];
-      next.pop();
-      const previousView = next[next.length - 1] || 'home';
-      setCurrentView(previousView);
-      setSelectedId(undefined);
-      return next;
-    });
->>>>>>> 14abb3b (Update polar homepage styling and navigation)
   };
 
   const handleOpenSearch = (initialQ?: string) => {
@@ -212,24 +185,7 @@ export function App() {
       )}
 
       {/* Main Dynamic View Content */}
-<<<<<<< HEAD
       <main className={`flex-1 w-full flex flex-col ${currentView === 'home' ? 'pt-16' : 'pt-2'}`}>
-=======
-      <main className="flex-1 w-full flex flex-col pt-16">
-        {currentView !== 'home' && (
-          <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#071827]/90 border border-cyan-700/60 text-xs font-semibold text-cyan-200 hover:text-white hover:border-cyan-500/70 transition-all shadow-lg shadow-cyan-900/20"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back</span>
-            </button>
-          </div>
-        )}
-
->>>>>>> 14abb3b (Update polar homepage styling and navigation)
         {currentView === 'home' && (
           <>
             {/* Exact Panoramic Background Hero (bg3.png) with Interactive Holographic Nodes */}
