@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #000000;
+    background-image: none;
+    background-attachment: fixed;
+    color: #f1f5f9;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060e1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+/* Polar Glow and Glass Effects */
+.glass-panel {
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+
+.glass-panel-subtle {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 25px rgba(14, 165, 233, 0.18);
+}
+
+.polar-glow {
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.25);
+}
+
+.polar-glow-lg {
+  box-shadow: 0 0 50px rgba(56, 189, 248, 0.35);
+}
+
+.polar-glow-cyan {
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+}
+
+/* Water Ripple Animation */
+@keyframes ripple-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple-ring 3.5s cubic-bezier(0.1, 0.2, 0.7, 1) infinite;
+}
+
+.animate-ripple-delayed {
+  animation: ripple-ring 3.5s cubic-bezier(0.1, 0.2, 0.7, 1) infinite;
+  animation-delay: 1.75s;
+}
+
+/* Floating animation */
+@keyframes float-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float-subtle 4s ease-in-out infinite;
+}
+
+/* Pulsing dashed line */
+@keyframes dash-pulse {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-dash {
+  stroke-dasharray: 6, 6;
+  animation: dash-pulse 2s linear infinite;
+}
+
+/* 3D Holographic Block Live 360 Rotation Styles */
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.perspective-800 {
+  perspective: 800px;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+@keyframes liveRotate360 {
+  0% {
+    transform: rotateX(14deg) rotateY(0deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(14deg) rotateY(360deg) rotateZ(0deg);
+  }
+}
+
+@keyframes liveRotate360Tilted {
+  0% {
+    transform: rotateX(18deg) rotateY(0deg) rotateZ(-2deg);
+  }
+  50% {
+    transform: rotateX(10deg) rotateY(180deg) rotateZ(2deg);
+  }
+  100% {
+    transform: rotateX(18deg) rotateY(360deg) rotateZ(-2deg);
+  }
+}
+
+@keyframes reverseSpinGroundRing {
+  0% {
+    transform: rotateX(76deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(76deg) rotateZ(-360deg);
+  }
+}
+
+@keyframes forwardSpinGroundRing {
+  0% {
+    transform: rotateX(76deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(76deg) rotateZ(360deg);
+  }
+}
+
+.animate-360-live {
+  animation: liveRotate360 14s linear infinite;
+}
+
+.animate-360-live-fast {
+  animation: liveRotate360 8s linear infinite;
+}
+
+.animate-360-live-tilted {
+  animation: liveRotate360Tilted 16s ease-in-out infinite;
+}
+
+.animate-ground-ring {
+  animation: reverseSpinGroundRing 20s linear infinite;
+}
+
+.animate-ground-ring-fast {
+  animation: forwardSpinGroundRing 12s linear infinite;
+}
+
+

@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/types.ts",
+    "src/lib/polar-data.ts",
+    "src/components/Navbar.tsx",
+    "src/components/Footer.tsx",
+    "src/components/HomeSections.tsx",
+    "src/components/PolarExactBackgroundHero.tsx",
+    "src/components/PolarPanoramicLandscape.tsx",
+    "src/components/3d/**/*",
+    "src/components/views/**/*",
+    "src/components/modals/**/*",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/components/ui",
+    "src/routes",
+    "src/router.tsx",
+    "src/server.ts",
+    "src/start.ts"
+  ]
+}
