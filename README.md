@@ -1,9 +1,6 @@
 # Polar Nexus
 
 ```text
-You are an expert AI software architect, senior full-stack developer, 3D web developer, creative technologist, UI/UX designer, AI/RAG engineer, database architect, scientific knowledge-platform designer, and performance engineer.
-
-Your task is to BUILD a complete production-quality web application called:
 
 ==================================================
                     POLARSETU
